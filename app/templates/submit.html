@@ -1,0 +1,76 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, field_class, uh -%}
+{%- block content %}
+  {%- set community = view.community -%}
+  <h1>post to {{ 'in/' ~ community.name if community else 'ina' }}</h1>
+  {%- if community and community.settings.submit_text_html %}
+    <div class="submit_text notice">
+      <div class="md">{{ community.settings.submit_text_html|safe }}</div>
+    </div>
+  {%- endif %}
+  {{ error_field(view.errors, 'community') }}
+  <form method="post" action="/api/submit" id="newlink" class="submit">
+    {{ uh(view.viewer) }}
+    <fieldset class="post-kind">
+      <legend>what kind of post?</legend>
+      <label class="choice-row">
+        <input type="radio"
+               name="kind"
+               value="link"
+               {% if view.form.kind == 'link' %}checked{% endif %}>
+        {{ (community.settings.submit_link_label if community else '') or 'a link' }}
+      </label>
+      <label class="choice-row">
+        <input type="radio"
+               name="kind"
+               value="self"
+               {% if view.form.kind == 'self' %}checked{% endif %}>
+        {{ (community.settings.submit_text_label if community else '') or 'some text' }}
+      </label>
+      {{ error_field(view.errors, 'kind') }}
+    </fieldset>
+    <p class="{{ field_class(view.errors, 'title') }}" id="title-field">
+      <label for="title">title</label>
+      <textarea name="title"
+                id="title"
+                rows="2"
+                maxlength="{{ view.max_title }}"
+                required>{{ view.form.title }}</textarea>
+      {{ error_field(view.errors, 'title') }}
+    </p>
+    <p class="{{ field_class(view.errors, 'url') }}" id="url-field">
+      <label for="url">link <span class="details">for a link post</span></label>
+      <input name="url" id="url" type="url" value="{{ view.form.url }}">
+      {{ error_field(view.errors, 'url') }}
+    </p>
+    <p class="{{ field_class(view.errors, 'text') }}" id="text-field">
+      <label for="text">text <span class="details">for a text post; optional</span></label>
+      <textarea name="text" id="text" rows="8">{{ view.form.text }}</textarea>
+      {{ error_field(view.errors, 'text') }}
+    </p>
+    <p class="{{ field_class(view.errors, 'community') }}"
+       id="community-field">
+      <label for="community-autocomplete">community</label>
+      <input name="community"
+             id="community-autocomplete"
+             type="text"
+             value="{{ view.form.community }}"
+             required>
+    </p>
+    <p class="choice-row">
+      <input type="checkbox"
+             name="sendreplies"
+             id="sendreplies"
+             {% if view.form.sendreplies %}checked{% endif %}>
+      <label for="sendreplies">tell me about replies</label>
+    </p>
+    <p class="choice-row">
+      <input type="checkbox" name="resubmit" id="resubmit">
+      <label for="resubmit">post it even if someone posted this link here before</label>
+    </p>
+    {{ error_field(view.errors, 'ratelimit') }}
+    <p class="actions">
+      <button type="submit" class="btn primary" name="submit" value="form">post</button>
+    </p>
+  </form>
+{%- endblock %}

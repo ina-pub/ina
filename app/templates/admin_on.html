@@ -1,0 +1,26 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, field_class, uh -%}
+{%- block content %}
+  <section class="settings-section admin-on">
+    <h1>turn on admin mode</h1>
+    <p class="details">
+      While it is on you can act anywhere on the site. It turns itself off after fifteen minutes
+      unused, nine hours at most, or when you log out.
+    </p>
+    <form method="post" action="/admin/on" class="pretty-form">
+      {{ uh(view.viewer) }}
+      <input type="hidden" name="dest" value="{{ view.dest }}">
+      <p class="{{ field_class(view.errors, 'password') }}">
+        <label for="admin-password">your password, to confirm</label>
+        <input type="password"
+               name="password"
+               id="admin-password"
+               autocomplete="current-password"
+               required>
+        {{ error_field(view.errors, 'password') }}
+        {{ error_field(view.errors, 'ratelimit') }}
+      </p>
+      <button type="submit" class="btn">turn it on</button>
+    </form>
+  </section>
+{%- endblock %}

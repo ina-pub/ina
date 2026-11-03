@@ -1,0 +1,16 @@
+{%- extends "base.html" -%}
+{%- from "macros/messages.html" import mail_tabs, message -%}
+{%- from "macros/comments.html" import reply_form -%}
+{%- block tabs %}
+  {{ mail_tabs(view, 'inbox') }}
+{%- endblock %}
+{%- block content %}
+  <div id="siteTable" class="sitetable message-list conversation">
+    {%- for item in view.items %}
+      {{ message(item, view.viewer, view.now, request.url.path, show_reply=False) }}
+    {%- endfor %}
+  </div>
+  {%- if view.items %}
+    {{ reply_form(view.viewer, view.reply_to, view.reply_text, view.reply_errors, top=True) }}
+  {%- endif %}
+{%- endblock %}

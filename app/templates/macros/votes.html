@@ -1,0 +1,30 @@
+{#- Vote arrows: small forms posting to /api/vote, so voting works without JS. The JS sends the
+    same form with fetch. Clicking a lit arrow sends 0 and takes the vote back. -#}
+{%- macro arrows(viewer, fullname, likes, dest) -%}
+  {%- if viewer %}
+    <form method="post" action="/api/vote" class="vote">
+      <input type="hidden" name="uh" value="{{ viewer.modhash }}">
+      <input type="hidden" name="id" value="{{ fullname }}">
+      <input type="hidden" name="dest" value="{{ dest }}">
+      <button type="submit"
+              name="dir"
+              value="{{ 0 if likes is true else 1 }}"
+              class="arrow {{ 'upmod' if likes is true else 'up' }}"
+              aria-label="upvote"></button>
+      {{ caller() }}
+      <button type="submit"
+              name="dir"
+              value="{{ 0 if likes is false else -1 }}"
+              class="arrow {{ 'downmod' if likes is false else 'down' }}"
+              aria-label="downvote"></button>
+    </form>
+  {%- else %}
+    <a href="/login?dest={{ dest|urlencode }}"
+       class="arrow up login-required"
+       aria-label="upvote"></a>
+    {{ caller() }}
+    <a href="/login?dest={{ dest|urlencode }}"
+       class="arrow down login-required"
+       aria-label="downvote"></a>
+  {%- endif %}
+{%- endmacro -%}

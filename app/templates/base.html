@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ view.title }}</title>
+    <link rel="stylesheet" href="{{ stylesheet() }}">
+    {%- set community = view.community if view.community is defined else none %}
+    {#- A community's own stylesheet comes last, unless the viewer turned those off. #}
+    {%- if community and community.stylesheet_hash and (not view.viewer or view.viewer.show_stylesheets) %}
+      <link rel="stylesheet"
+            href="{{ community.path }}stylesheet.css?v={{ community.stylesheet_hash }}"
+            title="applied_community_stylesheet">
+    {%- endif %}
+    {%- if view.viewer %}
+      <meta name="uh" content="{{ view.viewer.modhash }}">
+    {%- endif %}
+    <script type="module" src="/static/js/main.js"></script>
+    {%- block head %}
+    {% endblock -%}
+  </head>
+  {#- loggedin: community stylesheets written for old reddit key on it. #}
+  <body class="{% if view.viewer %}loggedin {% endif %}{% block body_class %}{% endblock %}">
+    <header id="header">
+      <a href="#content" id="jumpToContent">skip to the page</a>
+      {%- set bar = request.state.get('community_bar') or () %}
+      <nav id="community-header-area" aria-label="communities">
+        <div class="width-clip">
+          <details class="dropdown community-drop">
+            <summary class="selected title">your communities</summary>
+            <div class="drop-choices community-drop">
+              {%- for name in bar %}
+                <a href="/in/{{ name }}/" class="choice">{{ name }}</a>
+              {%- endfor %}
+              <a href="/ins/" class="bottom-option choice">find more</a>
+            </div>
+          </details>
+          <div class="community-list">
+            <ul class="flat-list community-bar">
+              <li>
+                <a href="/" class="choice">home</a>
+              </li>
+              <li>
+                <span class="separator">·</span><a href="/in/all/" class="choice">all</a>
+              </li>
+              <li>
+                <span class="separator">·</span><a href="/in/random/"
+                                                   class="random choice">surprise me</a>
+              </li>
+            </ul>
+            <span class="separator">|</span>
+            <ul class="flat-list community-bar" id="community-bar">
+              {%- for name in bar %}
+                <li>
+                  {%- if not loop.first %}<span class="separator">·</span>{% endif %}<a href="/in/{{ name }}/" class="choice">{{ name }}</a>
+                </li>
+              {%- endfor %}
+            </ul>
+          </div>
+          <a href="/ins/" id="community-more-link">browse »</a>
+        </div>
+      </nav>
+      <div id="header-bottom-left">
+        {%- if community and community.settings.header_img %}
+          <a href="{{ community.path }}"
+             id="header-img-a"
+             title="{{ community.settings.header_title }}">
+            <img id="header-img"
+                 src="{{ media(community.settings.header_img) }}"
+                 {% if community.settings.header_size %}width="{{ community.settings.header_size[0] }}" height="{{ community.settings.header_size[1] }}"{% endif %}
+                 alt="{{ community.name }}">
+          </a>
+        {%- else %}
+          <a href="/" id="header-img" class="default-header" title="ina home">ina</a>
+        {%- endif %}
+        {%- block pagename %}
+        {% endblock -%}
+        {%- block tabs %}
+        {% endblock -%}
+      </div>
+      <div id="header-bottom-right">
+        {%- if view.viewer %}
+          <span class="user"><a href="/user/{{ view.viewer.name }}/">{{ view.viewer.name }}</a> <span class="userkarma" title="post karma">{{ view.viewer.link_karma }}</span></span>
+          <span class="separator">|</span>
+          {%- if view.viewer.has_mail %}
+            <a href="/message/unread/" class="havemail" id="mail">inbox</a>
+            <a href="/message/unread/"
+               class="message-count"
+               title="unread">{{ view.viewer.inbox_count }}</a>
+          {%- else %}
+            <a href="/message/inbox/" class="nohavemail" id="mail">inbox</a>
+          {%- endif %}
+          {%- if view.viewer.is_moderator %}
+            <span class="separator">|</span>
+            <a href="/message/moderator/"
+               class="{{ 'havemail' if view.viewer.has_mod_mail else 'nohavemail' }} access-required"
+               id="modmail">modmail{% if view.viewer.has_mod_mail %} (new){% endif %}</a>
+          {%- endif %}
+          <span class="separator">|</span>
+          <a href="/prefs/" class="choice">settings</a>
+          {%- if view.viewer.may_admin %}
+            <span class="separator">|</span>
+            {%- if view.viewer.admin_mode %}
+              <a href="/admin" class="choice admin-mode">admin</a>
+              <span class="separator">|</span>
+              <form method="post" action="/admin/off" class="admin-off">
+                <input type="hidden" name="uh" value="{{ view.viewer.modhash }}">
+                <input type="hidden" name="dest" value="{{ request.url.path }}">
+                <button type="submit"
+                        class="link-button admin-mode"
+                        title="admin mode is on">admin off</button>
+              </form>
+            {%- else %}
+              <a href="/admin/on?dest={{ request.url.path|urlencode }}" class="choice">admin on</a>
+            {%- endif %}
+          {%- endif %}
+          <span class="separator">|</span>
+          <form method="post" action="/logout" class="logout">
+            <input type="hidden" name="uh" value="{{ view.viewer.modhash }}">
+            <input type="hidden" name="dest" value="{{ request.url.path }}">
+            <button type="submit" class="logout-button">log out</button>
+          </form>
+        {%- else %}
+          <span class="user"><a href="/login" class="login-required">log in or sign up</a></span>
+        {%- endif %}
+      </div>
+    </header>
+    {%- block side %}
+    {% endblock -%}
+    <main id="content" class="content">
+      {%- block content %}
+      {% endblock -%}
+    </main>
+    <footer class="footer-parent">
+      <p class="bottommenu">
+        ina is free software, under the
+        <a href="https://www.gnu.org/licenses/agpl-3.0.html"
+           rel="license">GNU Affero General Public License</a>.
+        {%- if source_url %}
+          <a href="{{ source_url }}">Its source code</a> is yours to read, change and share.
+        {%- endif %}
+      </p>
+    </footer>
+    {#- Where this page's time went; adminbar.js fills it in from /admin/timings. #}
+    {%- set recording = timing() %}
+    {%- if recording and view.viewer and (view.viewer.admin_mode or debug) %}
+      <aside id="admin-bar"
+             class="admin-bar{% if view.viewer.admin_mode %} admin-bar-admin{% endif %}"
+             data-request="{{ recording.id }}"
+             aria-label="admin bar">
+        <div class="admin-bar-line">
+          <strong class="admin-bar-mode">{{ 'admin mode' if view.viewer.admin_mode else 'debug' }}</strong>
+          <span title="commit">{{ commit() }}</span>
+          <span title="host">{{ host() }}</span>
+          {%- if view.viewer.may_admin %}<a href="/admin">/admin</a>{% endif %}
+          <span class="admin-bar-totals">timing…</span>
+          <span class="admin-bar-buttons">
+            <button type="button"
+                    class="link-button admin-bar-expand"
+                    aria-controls="admin-bar-details"
+                    aria-expanded="false"
+                    hidden>details</button>
+            <button type="button" class="link-button admin-bar-hide" hidden>hide</button>
+          </span>
+        </div>
+        <div id="admin-bar-details" class="admin-bar-details" hidden></div>
+      </aside>
+      <button type="button" class="admin-bar-show" hidden>timings</button>
+    {%- endif %}
+  </body>
+</html>

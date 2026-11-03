@@ -1,0 +1,100 @@
+{#- A community's stylesheet: its source and any problems found in it, its images, and the
+    header image. Plain forms throughout. -#}
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/forms.html" import uh -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- macro upload(kind, label, extra_name, extra_label, max) -%}
+  <form method="post"
+        action="{{ view.community.path }}api/upload_community_img"
+        enctype="multipart/form-data"
+        class="image-upload">
+    {{ uh(view.viewer) }}
+    <input type="hidden" name="upload_type" value="{{ kind }}">
+    <input type="file"
+           name="file"
+           accept="image/png,image/jpeg"
+           aria-label="{{ label }}">
+    <input type="text"
+           name="{{ extra_name }}"
+           placeholder="{{ extra_label }}"
+           maxlength="{{ max }}"
+           aria-label="{{ extra_label }}">
+    <button type="submit" class="btn">upload</button>
+  </form>
+{%- endmacro -%}
+{%- block content %}
+  <div class="stylesheet-customize-container">
+    <h1>stylesheet</h1>
+    {%- if view.saved %}<p class="notice">Saved.</p>{% endif %}
+    {%- if view.errors %}
+      <section id="validation-errors" class="error-list">
+        <h2>problems to fix first</h2>
+        <ul>
+          {%- for error in view.errors %}<li class="error">{{ error.params.error or error.message }}</li>{% endfor %}
+        </ul>
+      </section>
+    {%- endif %}
+    <form method="post"
+          action="{{ view.community.path }}api/community_stylesheet"
+          id="community-stylesheet">
+      {{ uh(view.viewer) }}
+      <p class="field">
+        <textarea name="stylesheet_contents"
+                  id="stylesheet_contents"
+                  rows="20"
+                  spellcheck="false"
+                  aria-label="stylesheet">{{ view.source }}</textarea>
+      </p>
+      <p class="field">
+        <label for="stylesheet_reason">what changed <span class="details">for the history</span></label>
+        <input type="text" name="reason" id="stylesheet_reason" maxlength="256">
+      </p>
+      <p class="actions">
+        <button type="submit" name="op" value="save" class="btn primary">save</button>
+        <button type="submit" name="op" value="preview" class="btn">check it</button>
+        <a href="{{ view.community.path }}wiki/revisions/config/stylesheet">history</a>
+      </p>
+    </form>
+    <h2>images</h2>
+    <p class="details">
+      PNG or JPEG, each under 500 KiB, up to 50. Use one as <code>url(%%name%%)</code>.
+    </p>
+    {{ upload('img', 'image', 'name', 'its name', 100) }}
+    <ul id="images" class="image-list">
+      {%- for row in view.images %}
+        <li>
+          <img src="{{ row.url }}"
+               alt="{{ row.image.name }}"
+               width="{{ [row.image.width, 100]|min }}">
+          <code>url(%%{{ row.image.name }}%%)</code>
+          <span class="details">{{ row.image.width }}×{{ row.image.height }}</span>
+          <form method="post"
+                action="{{ view.community.path }}api/delete_community_img">
+            {{ uh(view.viewer) }}
+            <input type="hidden" name="img_name" value="{{ row.image.name }}">
+            <button type="submit" class="link-button">delete</button>
+          </form>
+        </li>
+      {%- endfor %}
+    </ul>
+    <h2>header image</h2>
+    <p class="details">Shown in place of the ina wordmark on this community's pages.</p>
+    {%- if view.header_url %}
+      <p>
+        <img src="{{ view.header_url }}" alt="the current header image">
+      </p>
+      <form method="post"
+            action="{{ view.community.path }}api/delete_community_header">
+        {{ uh(view.viewer) }}
+        <button type="submit" class="link-button">use the wordmark again</button>
+      </form>
+    {%- endif %}
+    {{ upload('header', 'header image', 'header_title', 'text shown on hover', 500) }}
+  </div>
+{%- endblock %}

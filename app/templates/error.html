@@ -1,0 +1,11 @@
+{%- extends "base.html" -%}
+{%- block content %}
+  <section class="error-page">
+    {%- for error in view.errors %}
+      <h1>{{ error.message }}</h1>
+    {%- endfor %}
+    <p>
+      <a href="/">back to the front page</a>
+    </p>
+  </section>
+{%- endblock %}

@@ -1,0 +1,63 @@
+{#- A wiki page. The other wiki templates extend this one and fill its body. -#}
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- block body_class %}wiki-page{% endblock %}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- block content %}
+  {%- if view.alert %}<p class="infobar">{{ view.alert }}</p>{% endif %}
+  <header class="wiki-header">
+    <h1 class="wikititle">{%- block wikititle %}{{ view.page or 'wiki' }}{% endblock -%}</h1>
+    <nav class="pageactions" aria-label="wiki">
+      {%- for href, label, action in view.actions %}
+        <a class="wikiaction wikiaction-{{ action }}{% if action == view.action %} wikiaction-current{% endif %}"
+           href="{{ href }}">{{ label }}</a>
+      {%- endfor %}
+      <a class="wikiaction wikiaction-pages{% if view.action == 'pages' %} wikiaction-current{% endif %}"
+         href="{{ view.base_url }}/pages">all pages</a>
+      <a class="wikiaction wikiaction-recent{% if view.action == 'revisions' and not view.page %} wikiaction-current{% endif %}"
+         href="{{ view.base_url }}/revisions">recent edits</a>
+    </nav>
+  </header>
+  <div class="wiki-page-content md-container">
+    {%- block wiki %}
+      {%- if view.missing %}
+        <p class="empty">There's no page called "{{ view.page }}" here yet.</p>
+        {%- if view.may_revise %}
+          <p>
+            <a href="{{ view.base_url }}/create/{{ view.page }}" class="btn">write it</a>
+          </p>
+        {%- endif %}
+      {%- else %}
+        {%- if view.diff %}<div class="wiki-diff">{{ view.diff|safe }}</div>{% endif %}
+        {%- if not view.content_md %}
+          <p class="empty">This page is blank.</p>
+        {%- elif view.code %}
+          <pre class="wiki-source"><code>{{ view.content_md }}</code></pre>
+        {%- else %}
+          <div class="md wiki">{{ view.content_html|safe }}</div>
+        {%- endif %}
+        <details class="wiki-source-box">
+          <summary>markdown</summary>
+          <textarea readonly
+                    class="source"
+                    rows="20"
+                    aria-label="the page's markdown">{{ view.content_md }}</textarea>
+        </details>
+        {%- if view.revised_at %}
+          <p class="details revised">
+            last edited
+            {%- if view.revised_by %}
+              by <a href="/user/{{ view.revised_by }}" class="author">{{ view.revised_by }}</a>
+            {%- endif %}
+            <time datetime="{{ view.revised_at.isoformat() }}">{{ view.revised_at|age(view.now) }}</time>
+          </p>
+        {%- endif %}
+      {%- endif %}
+    {%- endblock %}
+  </div>
+{%- endblock %}

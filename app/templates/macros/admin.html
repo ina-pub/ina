@@ -1,0 +1,59 @@
+{#- The site admins' forms, shown only in admin mode. Each says why, for the admin log. -#}
+{%- from "macros/forms.html" import uh -%}
+{%- macro reason_field() -%}
+  <input type="text"
+         name="reason"
+         maxlength="300"
+         placeholder="why, for the admin log"
+         aria-label="why">
+{%- endmacro -%}
+{%- macro community_form(viewer, community, dest) -%}
+  <form method="post" action="/api/admin/community" class="admin-form">
+    {{ uh(viewer) }}
+    <input type="hidden" name="name" value="{{ community.name }}">
+    <input type="hidden" name="dest" value="{{ dest }}">
+    <select name="action" aria-label="what to do">
+      <option value="{{ 'unban' if community.banned else 'ban' }}">{{ 'unban' if community.banned else 'ban' }} it</option>
+      <option value="{{ 'unquarantine' if community.settings.quarantine else 'quarantine' }}">
+        {{ 'lift the quarantine' if community.settings.quarantine else 'quarantine it' }}
+      </option>
+      <option value="{{ 'sfw' if community.nsfw else 'nsfw' }}">{{ 'unmark' if community.nsfw else 'mark' }} it NSFW</option>
+    </select>
+    {{ reason_field() }}
+    <button type="submit" class="btn">do it</button>
+  </form>
+{%- endmacro -%}
+{%- macro account_forms(viewer, account, dest) -%}
+  {%- if not account.is_admin %}
+    {%- if account.suspended or account.in_timeout %}
+      <form method="post" action="/api/admin/unsuspend" class="admin-form">
+        {{ uh(viewer) }}
+        <input type="hidden" name="name" value="{{ account.name }}">
+        <input type="hidden" name="dest" value="{{ dest }}">
+        {{ reason_field() }}
+        <button type="submit" class="btn">lift the suspension</button>
+      </form>
+    {%- else %}
+      <form method="post" action="/api/admin/suspend" class="admin-form">
+        {{ uh(viewer) }}
+        <input type="hidden" name="name" value="{{ account.name }}">
+        <input type="hidden" name="dest" value="{{ dest }}">
+        <input type="number"
+               name="days"
+               min="1"
+               max="999"
+               placeholder="days, or empty for good"
+               aria-label="for how many days; empty for good">
+        {{ reason_field() }}
+        <button type="submit" class="btn">suspend</button>
+      </form>
+    {%- endif %}
+    <form method="post" action="/api/admin/remove_all" class="admin-form">
+      {{ uh(viewer) }}
+      <input type="hidden" name="name" value="{{ account.name }}">
+      <input type="hidden" name="dest" value="{{ dest }}">
+      {{ reason_field() }}
+      <button type="submit" class="btn">remove everything they posted</button>
+    </form>
+  {%- endif %}
+{%- endmacro -%}

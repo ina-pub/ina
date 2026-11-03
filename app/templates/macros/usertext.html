@@ -1,0 +1,44 @@
+{#- What an author can do to their own post or comment. "edit" opens its page with the form
+    showing, or opens the form in place with JS; "delete" asks first, in a details box. -#}
+{%- from "macros/forms.html" import error_field, uh -%}
+{%- macro edit_form(viewer, fullname, text, errors=(), shown=False, cancel='') -%}
+  <form method="post"
+        action="/api/editusertext"
+        class="usertext edit-usertext"
+        {% if not shown %}hidden{% endif %}>
+    {{ uh(viewer) }}
+    <input type="hidden" name="thing_id" value="{{ fullname }}">
+    <div class="usertext-edit">
+      <textarea name="text" rows="8" aria-label="your text">{{ text }}</textarea>
+      <div class="bottom-area">
+        <span class="error-holder">
+          {{ error_field(errors, 'text') }}
+          {{ error_field(errors, 'thing_id') }}
+        </span>
+        <div class="usertext-buttons">
+          <button type="submit" class="save">save changes</button>
+          <a href="{{ cancel }}" class="cancel">cancel</a>
+        </div>
+      </div>
+    </div>
+  </form>
+{%- endmacro -%}
+{%- macro author_buttons(viewer, fullname, permalink, dest, editable=True) -%}
+  {%- if editable %}
+    <li>
+      <a href="{{ permalink }}?edit=1" class="edit-usertext">edit</a>
+    </li>
+  {%- endif %}
+  <li>
+    <details class="confirm-form">
+      <summary>delete</summary>
+      <form method="post" action="/api/del">
+        {{ uh(viewer) }}
+        <input type="hidden" name="id" value="{{ fullname }}">
+        <input type="hidden" name="dest" value="{{ dest }}">
+        delete for good?
+        <button type="submit" class="link-button">delete</button>
+      </form>
+    </details>
+  </li>
+{%- endmacro -%}

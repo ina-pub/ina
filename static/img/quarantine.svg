@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="quarantined">
+  <title>quarantined</title>
+  <polygon points="75,8 142,132 8,132" fill="#e9c46a" stroke="#8a6d1f" stroke-width="4" stroke-linejoin="round"/>
+  <rect x="68" y="50" width="14" height="48" rx="6" fill="#3d2f05"/>
+  <circle cx="75" cy="113" r="8" fill="#3d2f05"/>
+</svg>

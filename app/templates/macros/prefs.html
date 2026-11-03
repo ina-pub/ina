@@ -1,0 +1,10 @@
+{#- The tabs across the settings pages. -#}
+{%- macro prefs_tabs(selected) -%}
+  <ul class="tabmenu">
+    {%- for path, label in (('/prefs/', 'options'), ('/prefs/friends/', 'friends'), ('/prefs/blocked/', 'blocked'), ('/prefs/apps/', 'apps'), ('/prefs/update/', 'account')) %}
+      <li {% if label == selected %}class="selected"{% endif %}>
+        <a href="{{ path }}">{{ label }}</a>
+      </li>
+    {%- endfor %}
+  </ul>
+{%- endmacro -%}

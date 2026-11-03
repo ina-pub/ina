@@ -1,0 +1,136 @@
+{#- Comments and their threads. Each action is a link or form, so it works without JS: replying
+    opens the comment's own page with the form, and the links for more replies go to the thread
+    they continue. The JS does the same in place. -#}
+{%- from "macros/votes.html" import arrows -%}
+{%- from "macros/forms.html" import error_field -%}
+{%- from "macros/flair.html" import author_flair -%}
+{%- from "macros/moderation.html" import mod_buttons, report -%}
+{%- from "macros/usertext.html" import author_buttons, edit_form -%}
+{%- from "macros/marks.html" import toggle -%}
+{%- macro reply_form(viewer, parent, text='', errors=(), top=False) -%}
+  <form method="post"
+        action="/api/comment"
+        class="usertext {{ 'top-level' if top else 'cloneable' }}">
+    <input type="hidden" name="uh" value="{{ viewer.modhash }}">
+    <input type="hidden" name="thing_id" value="{{ parent }}">
+    <div class="usertext-edit">
+      <textarea name="text"
+                rows="4"
+                aria-label="{{ 'your comment' if top else 'your reply' }}"
+                placeholder="{{ 'say something' if top else 'reply' }}">{{ text }}</textarea>
+      <div class="bottom-area">
+        <span class="error-holder">
+          {{ error_field(errors, 'text') }}
+          {{ error_field(errors, 'parent') }}
+          {{ error_field(errors, 'ratelimit') }}
+        </span>
+        <div class="usertext-buttons">
+          <button type="submit" class="save">{{ 'comment' if top else 'reply' }}</button>
+          {%- if not top %}
+            <button type="button" class="cancel">cancel</button>
+          {%- endif %}
+        </div>
+      </div>
+    </div>
+  </form>
+{%- endmacro -%}
+{%- macro more(more, link_id='', sort='') -%}
+  <div class="thing morechildren" data-parent="{{ more.parent }}">
+    <span class="morecomments">
+      <a href="{{ more.permalink }}"
+         class="button"
+         data-link-id="{{ link_id }}"
+         data-children="{{ more.ids|join(',') }}"
+         data-sort="{{ sort }}">{{ more.count|plural('more reply', 'more replies') }}</a>
+    </span>
+  </div>
+{%- endmacro -%}
+{%- macro comment(node, viewer, now, dest, reply=None, link_id='', sort='', moderate=False, edit=None) -%}
+  {%- set c = node.comment -%}
+  {%- set own = viewer and node.author == viewer.name -%}
+  {%- set editing = own and edit and edit.thing == c.fullname|string -%}
+  <article class="thing id-{{ c.fullname }} comment noncollapsed{% if node.is_submitter %} submitter{% endif %}{% if node.saved %} saved{% endif %}{% if c.deleted %} deleted{% endif %}"
+           id="{{ c.fullname.id36 }}"
+           data-fullname="{{ c.fullname }}"
+           data-type="comment">
+    <div class="midcol {{ node.vote_class }}">
+      {%- call arrows(viewer, c.fullname, node.likes, dest) %}
+      {% endcall %}
+    </div>
+    <div class="entry {{ node.vote_class }}">
+      <p class="tagline">
+        <button type="button" class="expand" aria-label="hide or show">−</button>
+        {%- if node.author_flair and node.author_flair.position == "left" %} {{ author_flair(node.author_flair) }}{% endif %}
+        <a href="/user/{{ node.author }}"
+           class="author{% if node.is_submitter %} submitter{% endif %}{% if node.friend %} friend{% endif %}{% if c.distinguished == 'admin' %} admin{% elif c.distinguished %} moderator{% endif %}">{{ node.author }}</a>
+        {%- if c.distinguished == "admin" %}
+          <span class="userattrs admin" title="speaking as one of this site's admins">admin</span>
+        {%- elif c.distinguished %}
+          <span class="userattrs moderator" title="speaking as an innkeeper">mod</span>
+        {%- endif %}
+        {%- if node.author_flair and node.author_flair.position == "right" %} {{ author_flair(node.author_flair) }}{% endif %}
+        {%- if node.score_hidden %}
+          <span class="score-hidden"
+                title="scores show once the comment is a little older">score hidden</span>
+        {%- else %}
+          {%- set down, same, up = scores(c.score, node.likes) %}
+          <span class="score dislikes">{{ down|plural("point") }}</span>
+          <span class="score unvoted">{{ same|plural("point") }}</span>
+          <span class="score likes">{{ up|plural("point") }}</span>
+        {%- endif %}
+        · <time datetime="{{ c.created.isoformat() }}"
+                class="live-timestamp">{{ c.created|age(now) }}</time>
+        {%- if c.edited and not c.deleted %}
+          <time class="edited-timestamp"
+                title="edited {{ c.edited|age(now) }}"
+                datetime="{{ c.edited.isoformat() }}">*</time>
+        {%- endif %}
+        {%- if node.stickied %}
+          · <span class="stickied-tagline">pinned by the innkeepers</span>
+        {%- endif %}
+      </p>
+      <div class="usertext">
+        <div class="usertext-body" {% if editing %}hidden{% endif %}>
+          <div class="md">{{ node.body_html|safe }}</div>
+        </div>
+        {%- if own %}
+          {{ edit_form(viewer, c.fullname, edit.text if editing else c.body_md, edit.errors if editing else (), editing, node.permalink) }}
+        {%- endif %}
+      </div>
+      <ul class="flat-list buttons">
+        <li>
+          <a href="{{ node.permalink }}" class="bylink">link</a>
+        </li>
+        {%- if node.parent_permalink %}
+          <li>
+            <a href="{{ node.parent_permalink }}" class="bylink">parent</a>
+          </li>
+        {%- endif %}
+        {%- if viewer %}
+          <li>
+            <a href="{{ node.permalink }}" class="reply-button">reply</a>
+          </li>
+          {{ toggle(viewer, c.fullname, dest, 'save', node.saved) }}
+        {%- endif %}
+        {%- if own %}{{ author_buttons(viewer, c.fullname, node.permalink, dest) }}{% endif %}
+        {{ report(viewer, c.fullname, dest) }}
+        {%- if moderate %}{{ mod_buttons(viewer, c, dest) }}{% endif %}
+      </ul>
+    </div>
+    <div class="child">
+      {%- if reply and reply.parent == c.fullname|string %}{{ reply_form(viewer, c.fullname, reply.text, reply.errors) }}{% endif %}
+      {%- if node.children or node.more %}
+        <div class="sitetable listing">
+          {%- for child in node.children %}{{ comment(child, viewer, now, dest, reply, link_id, sort, moderate, edit) }}{% endfor %}
+          {%- if node.more %}{{ more(node.more, link_id, sort) }}{% endif %}
+        </div>
+      {%- endif %}
+      {%- if node.continued %}
+        <div class="thing morerecursion">
+          <a href="{{ node.permalink }}"
+             class="deepthread">more replies further down this thread →</a>
+        </div>
+      {%- endif %}
+    </div>
+  </article>
+{%- endmacro -%}

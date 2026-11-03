@@ -1,0 +1,157 @@
+{%- extends "base.html" -%}
+{%- from "macros/admin.html" import account_forms, community_form -%}
+{%- from "macros/moderation.html" import mod_buttons, reports -%}
+{%- from "macros/links.html" import pages -%}
+{%- block pagename %}
+  <a href="/admin" class="pagename">admin</a>
+{%- endblock %}
+{%- block content %}
+  <ul class="tabmenu">
+    {%- for tab in view.tabs %}
+      <li {% if view.tab == tab %}class="selected"{% endif %}>
+        <a href="/admin/{{ tab }}" class="choice">{{ tab }}</a>
+      </li>
+    {%- endfor %}
+  </ul>
+  <h1>{{ view.tabs[view.tab] }}</h1>
+  {%- if view.tab == "reports" %}
+    <div id="siteTable" class="sitetable modqueue">
+      {%- for item in view.items %}
+        {%- set thing = item.thing -%}
+        <article class="thing {{ 'comment' if item.comment else 'link' }}"
+                 data-fullname="{{ item.fullname }}">
+          <div class="entry">
+            <p class="title">
+              {%- if item.comment %}a comment on {% endif -%}
+              <a href="{{ item.permalink }}" class="title">{{ item.link.title }}</a>
+            </p>
+            <p class="tagline">
+              by <a href="/user/{{ thing.author_name }}" class="author">{{ thing.author_name }}</a>
+              in <a href="/in/{{ item.link.community_name }}/"
+                    class="community">in/{{ item.link.community_name }}</a>
+              · <time datetime="{{ thing.created.isoformat() }}">{{ thing.created|age(view.now) }}</time>
+            </p>
+            {%- if item.comment %}
+              <div class="md">{{ item.comment.body_html|safe }}</div>
+            {%- elif item.link.selftext_html %}
+              <div class="md">{{ item.link.selftext_html|safe }}</div>
+            {%- endif %}
+            {{ reports(item.reasons) }}
+            <ul class="flat-list buttons">
+              <li>
+                <a href="{{ item.permalink }}" class="bylink">link</a>
+              </li>
+              {{ mod_buttons(view.viewer, thing, request.url.path, is_link=not item.comment) }}
+            </ul>
+          </div>
+        </article>
+      {%- else %}
+        <p id="noresults" class="empty">nothing reported</p>
+      {%- endfor %}
+    </div>
+  {%- elif view.tab == "accounts" %}
+    <table class="admin-table">
+      <tbody>
+        {%- for account in view.accounts %}
+          <tr>
+            <td>
+              <a href="/user/{{ account.name }}" class="author">{{ account.name }}</a>
+              {%- if account.is_admin %}<span class="userattrs admin">admin</span>{% endif %}
+            </td>
+            <td class="timestamp">
+              <time datetime="{{ account.created.isoformat() }}">{{ account.created|age(view.now) }}</time>
+            </td>
+            <td title="post karma · comment karma">{{ account.link_karma }} · {{ account.comment_karma }}</td>
+            <td class="state">
+              {%- if account.deleted %}
+                deleted
+              {%- elif account.suspended %}
+                suspended
+              {%- elif account.in_timeout %}
+                suspended until {{ account.timeout_expires.strftime("%B %-d") }}
+              {%- endif %}
+            </td>
+            <td>
+              {%- if not account.deleted and not account.is_admin %}
+                <details class="admin-actions">
+                  <summary>act</summary>
+                  {{ account_forms(view.viewer, account, request.url.path) }}
+                </details>
+              {%- endif %}
+            </td>
+          </tr>
+        {%- else %}
+          <tr>
+            <td class="empty">nobody yet</td>
+          </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  {%- elif view.tab == "communities" %}
+    <table class="admin-table">
+      <tbody>
+        {%- for community in view.communities %}
+          <tr>
+            <td>
+              <a href="{{ community.path }}" class="community">in/{{ community.name }}</a>
+            </td>
+            <td class="timestamp">
+              <time datetime="{{ community.created.isoformat() }}">{{ community.created|age(view.now) }}</time>
+            </td>
+            <td>{{ community.subscriber_count }} {{ 'member' if community.subscriber_count == 1 else 'members' }}</td>
+            <td class="state">
+              {%- set marks = [
+                'banned' if community.banned,
+                'quarantined' if community.settings.quarantine,
+                'nsfw' if community.nsfw,
+                community.type if community.type != "public"
+              ] %}
+              {{ marks|select|join(", ") }}
+            </td>
+            <td>
+              <details class="admin-actions">
+                <summary>act</summary>
+                {{ community_form(view.viewer, community, request.url.path) }}
+              </details>
+            </td>
+          </tr>
+        {%- else %}
+          <tr>
+            <td class="empty">none yet</td>
+          </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  {%- else %}
+    <table class="modactionlisting">
+      <tbody>
+        {%- for action in view.actions %}
+          <tr class="modactions {{ action.action }}">
+            <td class="timestamp">
+              <time datetime="{{ action.created.isoformat() }}">{{ action.created|age(view.now) }}</time>
+            </td>
+            <td>
+              <a href="/user/{{ action.admin_name }}" class="author">{{ action.admin_name }}</a>
+            </td>
+            <td class="button">{{ action.action }}</td>
+            <td class="description">
+              {%- if action.target_name and action.target.kind.value == "t2" %}
+                <a href="/user/{{ action.target_name }}">u/{{ action.target_name }}</a>
+              {%- elif action.target_name %}
+                <a href="/in/{{ action.target_name }}/">in/{{ action.target_name }}</a>
+              {%- else %}
+                {{ action.target or '' }}
+              {%- endif %}
+              {%- if action.details %}<span class="details">{{ action.details }}</span>{% endif %}
+            </td>
+          </tr>
+        {%- else %}
+          <tr>
+            <td class="empty">nothing yet</td>
+          </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  {%- endif %}
+  {{ pages(none, '?after=' ~ view.after if view.after else none) }}
+{%- endblock %}

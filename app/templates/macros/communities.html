@@ -1,0 +1,170 @@
+{#- A community's sidebar, and its join button, which the directory uses too. -#}
+{%- from "macros/admin.html" import community_form -%}
+{%- from "macros/search.html" import search_box -%}
+{%- from "macros/forms.html" import uh -%}
+{%- from "macros/flair.html" import author_flair -%}
+{%- macro subscribe_button(viewer, community, subscribed, dest) -%}
+  <span class="fancy-toggle-button subscribe-button">
+    {%- if viewer %}
+      <form method="post" action="/api/subscribe" class="subscribe-form">
+        <input type="hidden" name="uh" value="{{ viewer.modhash }}">
+        <input type="hidden" name="community" value="{{ community.fullname }}">
+        <input type="hidden" name="dest" value="{{ dest }}">
+        <input type="hidden"
+               name="action"
+               value="{{ 'unsub' if subscribed else 'sub' }}">
+        <button type="submit"
+                class="option {{ 'remove' if subscribed else 'add' }}">{{ 'leave' if subscribed else 'join' }}</button>
+      </form>
+    {%- else %}
+      <a href="/login?dest={{ dest|urlencode }}"
+         class="option add login-required">join</a>
+    {%- endif %}
+  </span>
+{%- endmacro -%}
+{%- macro tool(view, path, label) -%}
+  <li>
+    <a href="{{ view.community.path }}{{ path }}">{{ label }}</a>
+  </li>
+{%- endmacro -%}
+{%- macro sidebar(view, request) -%}
+  {%- set community = view.community -%}
+  <aside class="side">
+    {%- if community.banned %}
+      <p class="notice banned-notice">This community is banned. Only admins see it.</p>
+    {%- endif %}
+    {{ search_box(community) }}
+    <section class="spacer">
+      <div class="titlebox">
+        <h1 class="community-name">
+          <a href="{{ community.path }}">{{ community.name }}</a>
+        </h1>
+        <div class="membership">
+          {{ subscribe_button(view.viewer, community, view.sidebar.is_subscriber, request.url.path) }}
+          <span class="subscribers"><span class="number">{{ community.subscriber_count }}</span> <span class="word">{{ 'member' if community.subscriber_count == 1 else 'members' }}</span></span>
+          {%- if community.nsfw %} <span class="nsfw-stamp stamp"
+                                         title="not safe for work">nsfw</span>{% endif %}
+        </div>
+        {%- if community.type != "public" %}<p class="community-type">{{ community.type }} community</p>{% endif %}
+        <div class="usertext-body">
+          <div class="md">{{ community.sidebar_html|safe }}</div>
+        </div>
+        <p class="bottom">
+          <span class="age">started
+            <time datetime="{{ community.created.isoformat() }}">{{ community.created.strftime("%B %-d, %Y") }}</time>
+          </span>
+        </p>
+      </div>
+    </section>
+    {%- if view.sidebar.flair_box %}
+      {%- set box = view.sidebar.flair_box %}
+      <section class="spacer">
+        <div class="sidecontentbox flairbox">
+          <h2 class="title">your flair here</h2>
+          <p class="tagline">
+            <a href="/user/{{ box.name }}" class="author">{{ box.name }}</a>
+            {%- if box.current %}{{ author_flair(box.current) }}{% endif %}
+          </p>
+          <form method="post"
+                action="{{ community.path }}api/setflairenabled"
+                class="flairtoggle">
+            {{ uh(view.viewer) }}
+            <input type="hidden" name="dest" value="{{ request.url.path }}">
+            <input type="checkbox"
+                   id="flair_enabled"
+                   name="flair_enabled"
+                   {% if box.enabled %}checked{% endif %}>
+            <label for="flair_enabled">show it beside my name</label>
+            <button type="submit" class="link-button">apply</button>
+          </form>
+          {%- if box.choices %}
+            <form method="post"
+                  action="{{ community.path }}api/selectflair"
+                  class="flair-choices">
+              {{ uh(view.viewer) }}
+              <input type="hidden" name="name" value="{{ box.name }}">
+              <input type="hidden" name="dest" value="{{ request.url.path }}">
+              <ul>
+                {%- for template in box.choices %}
+                  <li>
+                    <label>
+                      <input type="radio" name="flair_template_id" value="{{ template.id }}">
+                      <span class="flair{% for name in template.css_class.split() %} flair-{{ name }}{% endfor %}">{{ template.text }}</span>
+                    </label>
+                  </li>
+                {%- endfor %}
+                <li>
+                  <label>
+                    <input type="radio" name="flair_template_id" value="">
+                    none
+                  </label>
+                </li>
+              </ul>
+              {%- if box.editable %}
+                <input type="text"
+                       name="text"
+                       maxlength="64"
+                       placeholder="your own words, where allowed"
+                       aria-label="flair text">
+              {%- endif %}
+              <button type="submit">choose</button>
+            </form>
+          {%- endif %}
+        </div>
+      </section>
+    {%- endif %}
+    {%- if view.sidebar.is_moderator %}
+      <section class="spacer">
+        <div class="sidecontentbox">
+          <h2 class="title">moderating</h2>
+          <ul class="content">
+            {%- if view.sidebar.can_configure %}
+              {{ tool(view, 'about/edit', 'settings') }}
+              {{ tool(view, 'about/stylesheet', 'stylesheet') }}
+              {{ tool(view, 'wiki/config/bouncer', "Bouncer's rules") }}
+            {%- endif %}
+            {%- if view.sidebar.can_moderate %}
+              {{ tool(view, 'about/modqueue/', 'needs review') }}
+              {{ tool(view, 'about/reports/', 'reported') }}
+              {{ tool(view, 'about/spam/', 'removed') }}
+              {{ tool(view, 'about/unmoderated/', 'not yet reviewed') }}
+            {%- endif %}
+            {%- if view.sidebar.can_manage_access %}
+              {{ tool(view, 'about/banned/', 'banned') }}
+              {{ tool(view, 'about/contributors/', 'approved posters') }}
+            {%- endif %}
+            {%- if view.sidebar.can_manage_mail %}{{ tool(view, 'about/muted/', 'muted') }}{% endif %}
+            {%- if view.sidebar.is_moderator %}{{ tool(view, 'about/traffic/', 'traffic') }}{% endif %}
+            {%- if view.sidebar.can_manage_flair %}{{ tool(view, 'about/flair/', 'flair') }}{% endif %}
+            {%- if view.sidebar.can_manage_wiki %}
+              {{ tool(view, 'about/wikibanned/', 'banned from the wiki') }}
+              {{ tool(view, 'about/wikicontributors/', 'wiki editors') }}
+            {%- endif %}
+            {{ tool(view, 'about/moderators/', 'innkeepers') }}
+            {{ tool(view, 'about/log/', 'moderation log') }}
+          </ul>
+        </div>
+      </section>
+    {%- endif %}
+    <section class="spacer">
+      <div class="sidecontentbox">
+        <h2 class="title">innkeepers</h2>
+        <ul class="content">
+          {%- for moderator in view.sidebar.moderators %}
+            <li>
+              <a href="/user/{{ moderator.name }}" class="author">{{ moderator.name }}</a>
+            </li>
+          {%- endfor %}
+        </ul>
+        <a href="/message/compose/?to=in/{{ community.name }}"
+           class="message-the-mods">write to them</a>
+      </div>
+    </section>
+    {%- if view.viewer and view.viewer.admin_mode %}
+      <section class="spacer admin-box">
+        <h2>admin</h2>
+        {{ community_form(view.viewer, community, request.url.path) }}
+      </section>
+    {%- endif %}
+  </aside>
+{%- endmacro -%}

@@ -1,0 +1,20 @@
+{#- Pieces every form uses: its CSRF token and its errors. -#}
+{%- macro error_field(errors, field) -%}
+  {%- for error in errors if error.field == field %}
+    <span class="error {{ error.code }} field-{{ field }}">{{ error.message }}</span>
+  {%- endfor %}
+{%- endmacro -%}
+{%- macro form_errors(errors) -%}
+  {%- for error in errors if error.field is none %}
+    <p class="error {{ error.code }}">{{ error.message }}</p>
+  {%- endfor %}
+{%- endmacro -%}
+{#- A field's wrapper, marked when the field has an error. -#}
+{%- macro field_class(errors, field) -%}
+  field{% for error in errors if error.field == field %}{% if loop.first %} has-error{% endif %}{% endfor %}
+{%- endmacro -%}
+{%- macro uh(viewer) -%}
+  {%- if viewer %}
+    <input type="hidden" name="uh" value="{{ viewer.modhash }}">
+  {% endif -%}
+{%- endmacro -%}

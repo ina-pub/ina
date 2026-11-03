@@ -1,0 +1,621 @@
+/*
+ * ina's stylesheet: the page frame. Old reddit's layout (a dense listing, a sidebar on the right,
+ * tabs in the header) in ina's own colours. Every colour is a variable here, so the palette is
+ * one place to change. Most class names still follow r2's markup, but ina's own parts are named
+ * community (#community-header-area, .thing.community, ...), so a community stylesheet written
+ * for old reddit needs its selectors ported before it styles them.
+ */
+
+:root {
+  --ina-text: #1f2328;
+  --ina-muted: #6a737d;
+  --ina-faint: #959da5;
+  --ina-background: #fff;
+  --ina-panel: #f6f8fa;
+  --ina-border: #d8dee4;
+  --ina-rule: #e6eaee;
+  --ina-header: #f1e9f9;
+  --ina-header-edge: #bfa4d9;
+  --ina-bar: #eef1f4;
+  --ina-link: var(--ina-purple);
+  --ina-title: var(--ina-purple-deep);
+  /* A greyed purple, so a visited title reads apart from an unvisited one. */
+  --ina-visited: #6d5a7e;
+  --ina-purple: #a23de4;
+  --ina-purple-deep: #8f24cf;
+  --ina-purple-light: #c892f6;
+  --ina-down: #27709c;
+  --ina-down-light: #75acd2;
+  --ina-accent: var(--ina-purple);
+  /* Only for text on --ina-purple-deep, the filled buttons' surface. */
+  --ina-accent-text: #fff;
+  --ina-up: var(--ina-purple);
+  --ina-focus: var(--ina-purple-deep);
+  --ina-moderator: #267a37;
+  --ina-admin: #c92a2a;
+  --ina-submitter: #1864ab;
+  --ina-friend: #8a6100;
+  --ina-error: #c92a2a;
+  --ina-success: #267a37;
+  --ina-notice: #fff8db;
+  --ina-notice-edge: #e9c46a;
+  --ina-new: #fff4e6;
+  --ina-nsfw: #c92a2a;
+  --ina-font: verdana, 'DejaVu Sans', arial, helvetica, sans-serif;
+  --ina-mono: 'SFMono-Regular', menlo, consolas, monospace;
+  --ina-side-width: 300px;
+  color-scheme: light dark;
+}
+
+/* The hex values above are the fallbacks for browsers that can't parse oklch. A custom property
+ * takes any value, so a later oklch declaration in the same rule would win and then fail where it's
+ * used; the oklch values have to sit behind @supports instead. */
+@supports (color: oklch(0% 0 0)) {
+  :root {
+    --ina-purple: oklch(58% 0.24 308);
+    --ina-purple-deep: oklch(52% 0.24 308);
+    --ina-purple-light: oklch(75% 0.15 308);
+    --ina-down: oklch(52% 0.1 240);
+    --ina-down-light: oklch(72% 0.08 240);
+  }
+}
+
+/* Dark mode: lighter purple and blue on near-black purple greys (the brand hue at low chroma).
+ * Filled buttons keep --ina-purple-deep; titles and focus rings, which sit on the page, move to
+ * the light purple, as the deep one is under 3:1 on the dark background. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ina-purple: var(--ina-purple-light);
+    --ina-down: var(--ina-down-light);
+    --ina-title: var(--ina-purple-light);
+    --ina-focus: var(--ina-purple-light);
+    --ina-text: #e0dce3;
+    --ina-muted: #a7a2ac;
+    --ina-faint: #8c8790;
+    --ina-background: #161219;
+    --ina-panel: #1f1a24;
+    --ina-border: #403a45;
+    --ina-rule: #2e2933;
+    --ina-header: #291f31;
+    --ina-header-edge: #644b7a;
+    --ina-bar: #241f29;
+    --ina-visited: #a190b1;
+    --ina-moderator: #71c575;
+    --ina-admin: #f2716a;
+    --ina-submitter: #79b0e8;
+    --ina-friend: #e3b341;
+    --ina-error: #f2716a;
+    --ina-success: #71c575;
+    --ina-notice: #342a0e;
+    --ina-notice-edge: #95752a;
+    --ina-new: #332214;
+    --ina-nsfw: #f2716a;
+  }
+}
+
+html {
+  font-size: 13px;
+}
+
+body {
+  margin: 0;
+  background: var(--ina-background);
+  color: var(--ina-text);
+  font-family: var(--ina-font);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+a {
+  color: var(--ina-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: normal;
+  margin: 0.4em 0;
+}
+
+h1 {
+  font-size: 1.45rem;
+}
+
+img {
+  border: 0;
+}
+
+/* Things only screen readers need, such as labels the placeholder already says. */
+.screenreader-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+#jumpToContent {
+  position: absolute;
+  left: -1000px;
+}
+
+#jumpToContent:focus {
+  left: 4px;
+  top: 4px;
+  z-index: 10;
+  background: var(--ina-background);
+  padding: 2px 6px;
+}
+
+.clear,
+.clearleft {
+  clear: both;
+}
+
+.clearleft {
+  clear: left;
+}
+
+.hidden {
+  display: none;
+}
+
+.error,
+.error a {
+  color: var(--ina-error);
+}
+
+.green {
+  color: var(--ina-success);
+}
+
+.gray,
+.details,
+.little {
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+}
+
+/* Buttons that act like links: actions are forms, so they work without JavaScript. */
+button.link-button,
+button.expand,
+button.logout-button {
+  background: none;
+  border: 0;
+  padding: 0 1px;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.link-button:hover,
+button.logout-button:hover {
+  text-decoration: underline;
+}
+
+form.inline {
+  display: inline;
+}
+
+/* The header: the community bar across the top, then the wordmark, page name and tabs. */
+#header {
+  position: relative;
+  background: var(--ina-header);
+  border-bottom: 1px solid var(--ina-header-edge);
+  min-height: 70px;
+}
+
+#community-header-area {
+  background: var(--ina-bar);
+  border-bottom: 1px solid var(--ina-border);
+  font-size: 0.75rem;
+  height: 19px;
+  line-height: 19px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  position: relative;
+}
+
+#community-header-area .width-clip {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+#community-header-area .community-list {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#community-header-area .community-list > * {
+  display: inline;
+}
+
+.community-bar a {
+  color: var(--ina-text);
+}
+
+.community-bar .separator,
+#community-header-area .separator {
+  color: var(--ina-faint);
+  margin: 0 3px;
+}
+
+#community-more-link {
+  flex: none;
+  margin-left: auto;
+  padding: 0 6px 0 12px;
+  background: var(--ina-bar);
+  color: var(--ina-text);
+  font-weight: bold;
+}
+
+/* "your communities", a details box so it opens without JavaScript. */
+details.dropdown.community-drop {
+  position: relative;
+  padding: 0 10px 0 6px;
+}
+
+details.dropdown.community-drop > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details.dropdown.community-drop > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.dropdown.community-drop > summary::after {
+  content: '';
+  display: inline-block;
+  margin-left: 5px;
+  border: 4px solid transparent;
+  border-top-color: var(--ina-muted);
+  vertical-align: -1px;
+}
+
+.drop-choices {
+  display: none;
+}
+
+details.dropdown.community-drop[open] > .drop-choices {
+  display: block;
+  position: absolute;
+  top: 19px;
+  left: 4px;
+  z-index: 100;
+  min-width: 160px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--ina-background);
+  border: 1px solid var(--ina-border);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
+  text-transform: none;
+  line-height: 1.6;
+}
+
+.drop-choices .choice {
+  display: block;
+  padding: 0 8px;
+  color: var(--ina-text);
+}
+
+.drop-choices .choice:hover {
+  background: var(--ina-panel);
+}
+
+.drop-choices .bottom-option {
+  border-top: 1px dotted var(--ina-border);
+  font-style: italic;
+}
+
+#header-bottom-left {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding-left: 6px;
+}
+
+/* The wordmark: ina's name in place of a logo. */
+#header-img.default-header {
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.6rem;
+  font-weight: bold;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--ina-accent);
+  padding: 0 4px 6px 2px;
+  text-decoration: none;
+}
+
+#header-img-a {
+  display: block;
+  padding-bottom: 2px;
+}
+
+#header-img {
+  display: block;
+  max-height: 60px;
+}
+
+.pagename {
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-transform: lowercase;
+  margin-bottom: 4px;
+}
+
+.pagename,
+.pagename a {
+  color: var(--ina-text);
+}
+
+#header-bottom-right {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-width: 1px 0 0 1px;
+  border-top-left-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.85rem;
+}
+
+#header-bottom-right .separator {
+  color: var(--ina-faint);
+  margin: 0 3px;
+}
+
+#header-bottom-right form.logout,
+#header-bottom-right form.admin-off,
+#header-bottom-right .flat-list {
+  display: inline;
+}
+
+#header-bottom-right .user a,
+button.logout-button {
+  color: var(--ina-link);
+}
+
+.havemail,
+.message-count {
+  color: var(--ina-friend);
+  font-weight: bold;
+}
+
+#modmail.havemail {
+  color: var(--ina-moderator);
+}
+
+/* Tabs along the bottom of the header, and at the top of some pages. */
+.tabmenu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.tabmenu li a {
+  display: block;
+  padding: 2px 8px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  font-weight: bold;
+  color: var(--ina-link);
+}
+
+.tabmenu li.selected a {
+  background: var(--ina-background);
+  color: var(--ina-accent);
+  border-color: var(--ina-header-edge);
+  position: relative;
+  top: 1px;
+}
+
+.content > .tabmenu,
+.content .tabmenu {
+  border-bottom: 1px solid var(--ina-header-edge);
+  margin: 6px 0 10px;
+}
+
+/* Inline lists: buttons under a link, links in the header. */
+.flat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+
+.flat-list li {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.flat-list form {
+  display: inline;
+}
+
+/* The page: a sidebar on the right and the content beside it. */
+.side {
+  float: right;
+  width: var(--ina-side-width);
+  margin: 8px 6px 0 12px;
+}
+
+main.content {
+  margin: 8px calc(var(--ina-side-width) + 24px) 0 8px;
+  min-height: 200px;
+}
+
+/* Pages without a sidebar use the whole width. */
+body:not(:has(> .side)) > main.content {
+  margin-right: 8px;
+}
+
+.spacer {
+  margin-bottom: 12px;
+}
+
+.footer-parent {
+  clear: both;
+  margin-top: 40px;
+  padding: 16px 0 24px;
+  text-align: center;
+  border-top: 1px solid var(--ina-rule);
+}
+
+.bottommenu {
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+}
+
+.bottommenu a {
+  color: var(--ina-muted);
+  text-decoration: underline;
+}
+
+/* Rendered markdown: posts, comments, sidebars and wiki pages. */
+.md {
+  max-width: 60em;
+  overflow-wrap: break-word;
+  font-size: 1.05rem;
+}
+
+.md p {
+  margin: 0.35em 0;
+}
+
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  font-weight: bold;
+  margin: 0.8em 0 0.4em;
+}
+
+.md h1 {
+  font-size: 1.35rem;
+}
+
+.md h2 {
+  font-size: 1.2rem;
+}
+
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  font-size: 1.05rem;
+}
+
+.md ul,
+.md ol {
+  margin: 0.4em 0;
+  padding-left: 2em;
+}
+
+.md blockquote {
+  margin: 0.4em 0;
+  padding: 0 8px;
+  border-left: 3px solid var(--ina-border);
+  color: var(--ina-muted);
+}
+
+.md code {
+  font-family: var(--ina-mono);
+  font-size: 0.9em;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-rule);
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+.md pre {
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-rule);
+  border-radius: 3px;
+  padding: 6px 8px;
+  overflow: auto;
+}
+
+.md pre code {
+  border: 0;
+  padding: 0;
+  background: none;
+}
+
+.md table {
+  border-collapse: collapse;
+  margin: 0.4em 0;
+}
+
+.md th,
+.md td {
+  border: 1px solid var(--ina-border);
+  padding: 2px 6px;
+}
+
+.md hr {
+  border: 0;
+  border-top: 1px solid var(--ina-border);
+}
+
+.md del {
+  color: var(--ina-muted);
+}
+
+.md sup {
+  font-size: 0.85em;
+}
+
+.md-container {
+  overflow: hidden;
+}
+
+@media (width <= 760px) {
+  .side {
+    float: none;
+    width: auto;
+    margin: 8px;
+  }
+
+  main.content {
+    margin: 8px;
+  }
+
+  #header {
+    min-height: 90px;
+  }
+
+  #header-bottom-right {
+    position: static;
+    border-radius: 0;
+    border-width: 1px 0 0;
+  }
+
+  #header-bottom-left {
+    position: static;
+    flex-wrap: wrap;
+    padding-top: 4px;
+  }
+}

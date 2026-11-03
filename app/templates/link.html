@@ -1,0 +1,133 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/links.html" import link_thing with context -%}
+{%- from "macros/comments.html" import comment, more, reply_form -%}
+{%- from "macros/forms.html" import uh -%}
+{%- from "macros/usertext.html" import edit_form -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block tabs %}
+  {%- set link = view.row.link -%}
+  <ul class="tabmenu">
+    <li class="selected">
+      <a href="{{ view.row.permalink }}" class="choice">comments</a>
+    </li>
+    {%- if not link.is_self %}
+      <li>
+        <a href="/in/{{ link.community_name }}/duplicates/{{ link.fullname.id36 }}/"
+           class="choice">elsewhere</a>
+      </li>
+    {%- endif %}
+  </ul>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- macro self_text(view, link) -%}
+  {#- A self post's text, and its author's form for editing it. -#}
+  {%- set own = view.viewer and view.row.author == view.viewer.name -%}
+  {%- set editing = view.edit_thing == link.fullname|string -%}
+  <div class="usertext">
+    <div class="usertext-body md-container" {% if editing %}hidden{% endif %}>
+      <div class="md">
+        {%- if link.deleted -%}
+          <p>[deleted]</p>
+        {%- elif (link.removed or link.spam) and not view.sidebar.can_moderate -%}
+          <p>[removed by the innkeepers]</p>
+        {%- else -%}
+          {{ link.selftext_html|safe }}
+        {%- endif -%}
+      </div>
+    </div>
+    {%- if own %}
+      {{ edit_form(view.viewer, link.fullname, view.edit_text if editing else link.selftext_md, view.edit_errors, editing, request.url.path) }}
+    {%- endif %}
+  </div>
+{%- endmacro -%}
+{%- block content %}
+  {%- set link = view.row.link -%}
+  {%- set thread = view.thread -%}
+  {%- set edit = {'thing': view.edit_thing, 'text': view.edit_text, 'errors': view.edit_errors} if view.edit_thing else None -%}
+  {%- set reply = {'parent': view.reply_parent, 'text': view.reply_text, 'errors': view.reply_errors} if view.reply_parent else None -%}
+  {%- set own = view.viewer and view.row.author == view.viewer.name -%}
+  <div id="siteTable" class="sitetable linklisting">
+    {%- if link.is_self and (link.selftext_html or own or link.deleted) %}
+      {%- call link_thing(view.row, view, show_community=False) %}{{ self_text(view, link) }}{% endcall %}
+    {%- else %}
+      {{ link_thing(view.row, view, show_community=False) }}
+    {%- endif %}
+  </div>
+  {%- if view.can_flair %}
+    <form method="post"
+          action="{{ view.community.path }}api/selectflair"
+          class="link-flair-form">
+      {{ uh(view.viewer) }}
+      <input type="hidden" name="link" value="{{ link.fullname }}">
+      <input type="hidden" name="dest" value="{{ request.url.path }}">
+      <label for="link_flair_template">flair</label>
+      <select name="flair_template_id" id="link_flair_template">
+        <option value="">none</option>
+        {%- for template in view.link_flair_choices %}
+          <option value="{{ template.id }}"
+                  {% if link.flair_text == template.text and link.flair_css == (template.css_class or none) %}selected{% endif %}>
+            {{ template.text or template.css_class }}
+          </option>
+        {%- endfor %}
+      </select>
+      <input type="text"
+             name="text"
+             maxlength="64"
+             placeholder="your own words, where allowed"
+             aria-label="flair text">
+      <button type="submit">set flair</button>
+    </form>
+  {%- endif %}
+  <section class="commentarea"
+           data-link-id="{{ link.fullname }}"
+           data-sort="{{ thread.sort }}">
+    <h2 class="panestack-title">
+      <span class="title">{{ link.comment_count|plural("comment") }}</span>
+    </h2>
+    <div class="menuarea">
+      <span class="dropdown-title">order by</span>
+      {%- for value, label in thread.sorts %}
+        <a href="?sort={{ value }}"
+           class="choice{% if thread.sort == value %} selected{% endif %}">{{ label }}</a>
+      {%- endfor %}
+    </div>
+    {%- if thread.focus %}
+      <p class="infobar">
+        This is one comment and its replies.
+        <a href="{{ view.row.permalink }}">See the whole thread →</a>
+      </p>
+    {%- endif %}
+    {%- if view.archived %}
+      <p class="archived-infobar">This thread is archived: it takes no more votes or comments.</p>
+    {%- elif view.locked %}
+      <p class="locked-infobar">The innkeepers locked this thread: it takes no more comments.</p>
+    {%- endif %}
+    {%- if view.viewer and view.can_comment %}
+      {%- if not thread.focus %}
+        {%- set top_reply = reply if reply and reply.parent == link.fullname|string else None -%}
+        {{ reply_form(view.viewer, link.fullname, top_reply.text if top_reply else '', top_reply.errors if top_reply else (), top=True) }}
+      {%- endif %}
+    {%- elif not view.viewer %}
+      <p class="login-required-comment">
+        <a href="/login?dest={{ request.url.path|urlencode }}">Log in or sign up</a> to join in.
+      </p>
+    {%- endif %}
+    <div class="sitetable nestedlisting">
+      {%- set focus_reply = {'parent': 't1_' ~ thread.focus, 'text': '', 'errors': ()} if thread.focus and view.can_comment and not reply and not view.edit_thing else reply -%}
+      {%- for node in thread.nodes %}
+        {{ comment(node, view.viewer, view.now, request.url.path, focus_reply, link.fullname, thread.sort, view.sidebar.can_moderate, edit) }}
+      {%- endfor %}
+      {%- if thread.more %}{{ more(thread.more, link.fullname, thread.sort) }}{% endif %}
+    </div>
+    {%- if view.viewer and view.can_comment %}
+      <template id="reply-template">
+        {{ reply_form(view.viewer, '') }}
+      </template>
+    {%- endif %}
+  </section>
+{%- endblock %}

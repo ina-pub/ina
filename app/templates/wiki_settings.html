@@ -1,0 +1,71 @@
+{#- A wiki page's settings: who edits it, whether it's listed, and its approved editors. -#}
+{%- extends "wiki_page.html" -%}
+{%- from "macros/forms.html" import uh -%}
+{%- block wikititle %}settings for {{ view.page }}{% endblock %}
+{%- block wiki %}
+  {%- for error in view.errors %}<p class="error {{ error.code }}">{{ error.message }}</p>{% endfor %}
+  {%- if view.show_settings %}
+    <form id="pagesettings"
+          method="post"
+          action="{{ view.base_url }}/settings/{{ view.page }}"
+          class="settings">
+      {{ uh(view.viewer) }}
+      <fieldset>
+        <legend>who edits it</legend>
+        {%- for level, label in view.permlevels %}
+          <p class="choice-row">
+            <input type="radio"
+                   name="permlevel"
+                   id="permlevel{{ level }}"
+                   value="{{ level }}"
+                   {% if view.permlevel == level %}checked{% endif %}>
+            <label for="permlevel{{ level }}">{{ label }}</label>
+          </p>
+        {%- endfor %}
+      </fieldset>
+      <p class="choice-row">
+        <input type="checkbox"
+               name="listed"
+               id="listed"
+               {% if view.listed %}checked{% endif %}>
+        <label for="listed">include it in the list of pages</label>
+      </p>
+      <p class="actions">
+        <button type="submit" class="btn primary wiki_button">save</button>
+      </p>
+    </form>
+  {%- endif %}
+  {%- if view.show_editors and view.permlevel != 2 %}
+    <h2>approved editors</h2>
+    <form method="post"
+          action="{{ view.community.path }}api/wiki/alloweditor/add"
+          id="WikiAllowEditor"
+          class="add-member">
+      {{ uh(view.viewer) }}
+      <input type="hidden" name="page" value="{{ view.page }}">
+      <input name="username"
+             maxlength="20"
+             type="text"
+             placeholder="username"
+             aria-label="username">
+      <button type="submit" class="btn">approve</button>
+    </form>
+    <ul class="editors">
+      {%- for editor in view.editors %}
+        <li>
+          <a href="/user/{{ editor.name }}" class="author">{{ editor.name }}</a>
+          <form method="post"
+                action="{{ view.community.path }}api/wiki/alloweditor/del"
+                class="inline">
+            {{ uh(view.viewer) }}
+            <input type="hidden" name="page" value="{{ view.page }}">
+            <input type="hidden" name="username" value="{{ editor.name }}">
+            <button type="submit" class="link-button">take off</button>
+          </form>
+        </li>
+      {%- else %}
+        <li class="empty">none yet</li>
+      {%- endfor %}
+    </ul>
+  {%- endif %}
+{%- endblock %}

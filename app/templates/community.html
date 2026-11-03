@@ -1,0 +1,21 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/links.html" import listing, sort_tabs with context -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block tabs %}
+  {%- if view.listing is defined %}
+    {{ sort_tabs(view.listing, view.community.path ~ 'wiki/' if view.sidebar.wiki_enabled else none) }}
+  {%- endif %}
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- block content %}
+  {%- if view.listing is defined %}
+    {{ listing(view, view.listing) }}
+  {%- else %}
+    <p id="noresults" class="empty">nothing here yet</p>
+  {%- endif %}
+{%- endblock %}

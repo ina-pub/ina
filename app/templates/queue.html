@@ -1,0 +1,54 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/moderation.html" import mod_buttons, reports -%}
+{%- from "macros/links.html" import pages -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- block content %}
+  <ul class="tabmenu">
+    {%- for queue, label in view.queues.items() %}
+      <li {% if view.queue == queue %}class="selected"{% endif %}>
+        <a href="{{ view.community.path }}about/{{ queue.value }}/"
+           class="choice">{{ queue.value }}</a>
+      </li>
+    {%- endfor %}
+  </ul>
+  <h1>{{ view.queues[view.queue] }}</h1>
+  <div id="siteTable" class="sitetable modqueue">
+    {%- for item in view.items %}
+      {%- set thing = item.thing -%}
+      <article class="thing {{ 'comment' if item.comment else 'link' }}{% if thing.removed or thing.spam %} spam{% endif %}"
+               data-fullname="{{ item.fullname }}">
+        <div class="entry">
+          <p class="title">
+            {%- if item.comment %}a comment on {% endif -%}
+            <a href="{{ item.permalink }}" class="title">{{ item.link.title }}</a>
+          </p>
+          <p class="tagline">
+            by <a href="/user/{{ thing.author_name }}" class="author">{{ thing.author_name }}</a>
+            · <time datetime="{{ thing.created.isoformat() }}">{{ thing.created|age(view.now) }}</time>
+          </p>
+          {%- if item.comment %}
+            <div class="md">{{ item.comment.body_html|safe }}</div>
+          {%- elif item.link.selftext_html %}
+            <div class="md">{{ item.link.selftext_html|safe }}</div>
+          {%- endif %}
+          {{ reports(item.reasons) }}
+          <ul class="flat-list buttons">
+            <li>
+              <a href="{{ item.permalink }}" class="bylink">link</a>
+            </li>
+            {{ mod_buttons(view.viewer, thing, request.url.path, is_link=not item.comment) }}
+          </ul>
+        </div>
+      </article>
+    {%- else %}
+      <p id="noresults" class="empty">nothing waiting</p>
+    {%- endfor %}
+  </div>
+  {{ pages(none, '?after=' ~ view.after if view.after else none) }}
+{%- endblock %}

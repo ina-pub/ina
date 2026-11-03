@@ -1,0 +1,174 @@
+{#- A community's flair: whether it's on, where it shows, who has which, and the choices
+    people pick from. Each row is its own small form. -#}
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/forms.html" import uh -%}
+{%- from "macros/links.html" import pages -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- macro flair_fields(text='', css_class='') -%}
+  <input type="text"
+         name="text"
+         value="{{ text }}"
+         maxlength="64"
+         placeholder="words"
+         aria-label="words">
+  <input type="text"
+         name="css_class"
+         value="{{ css_class }}"
+         placeholder="css class"
+         aria-label="css class">
+{%- endmacro -%}
+{%- macro choices(templates, kind) -%}
+  <div class="flairlist">
+    {%- for template in templates %}
+      <div class="flairtemplate flairrow">
+        <form method="post" action="{{ view.community.path }}api/flairtemplate">
+          {{ uh(view.viewer) }}
+          <input type="hidden" name="flair_template_id" value="{{ template.id }}">
+          <input type="hidden" name="flair_type" value="{{ kind }}">
+          {{ flair_fields(template.text, template.css_class) }}
+          <label class="choice-row">
+            <input type="checkbox"
+                   name="text_editable"
+                   {% if template.text_editable %}checked{% endif %}>
+            people may change the words
+          </label>
+          <button type="submit" class="btn">save</button>
+        </form>
+        <form method="post"
+              action="{{ view.community.path }}api/deleteflairtemplate">
+          {{ uh(view.viewer) }}
+          <input type="hidden" name="flair_template_id" value="{{ template.id }}">
+          <button type="submit" class="link-button flairdeletebtn">delete</button>
+        </form>
+      </div>
+    {%- endfor %}
+    <div class="flairtemplate flairrow new-row">
+      <form method="post" action="{{ view.community.path }}api/flairtemplate">
+        {{ uh(view.viewer) }}
+        <input type="hidden" name="flair_type" value="{{ kind }}">
+        {{ flair_fields() }}
+        <label class="choice-row">
+          <input type="checkbox" name="text_editable">
+          people may change the words
+        </label>
+        <button type="submit" class="btn">add</button>
+      </form>
+    </div>
+    {%- if templates %}
+      <form method="post"
+            action="{{ view.community.path }}api/clearflairtemplates">
+        {{ uh(view.viewer) }}
+        <input type="hidden" name="flair_type" value="{{ kind }}">
+        <button type="submit" class="link-button">delete all of these</button>
+      </form>
+    {%- endif %}
+  </div>
+{%- endmacro -%}
+{%- block content %}
+  {%- for error in view.errors %}<p class="error {{ error.code }}">{{ error.message }}</p>{% endfor %}
+  {%- set settings = view.community.settings %}
+  <h1>flair</h1>
+  <form method="post"
+        action="{{ view.community.path }}api/flairconfig"
+        class="settings flair-settings">
+    {{ uh(view.viewer) }}
+    <fieldset>
+      <legend>who gets flair</legend>
+      <p class="choice-row">
+        <input type="checkbox"
+               id="flair_enabled"
+               name="flair_enabled"
+               {% if settings.flair_enabled %}checked{% endif %}>
+        <label for="flair_enabled">show flair beside people's names</label>
+      </p>
+      <p class="choice-row">
+        <input type="checkbox"
+               id="flair_self_assign_enabled"
+               name="flair_self_assign_enabled"
+               {% if settings.flair_self_assign_enabled %}checked{% endif %}>
+        <label for="flair_self_assign_enabled">let people choose their own</label>
+      </p>
+      <p class="choice-row">
+        <input type="checkbox"
+               id="link_flair_self_assign_enabled"
+               name="link_flair_self_assign_enabled"
+               {% if settings.link_flair_self_assign_enabled %}checked{% endif %}>
+        <label for="link_flair_self_assign_enabled">let posters flair their own links</label>
+      </p>
+    </fieldset>
+    <fieldset>
+      <legend>where people's flair shows</legend>
+      {%- for value, label in view.positions %}
+        <p class="choice-row">
+          <input type="radio"
+                 name="flair_position"
+                 id="flair_position_{{ value }}"
+                 value="{{ value }}"
+                 {% if settings.flair_position == value %}checked{% endif %}>
+          <label for="flair_position_{{ value }}">{{ label }}</label>
+        </p>
+      {%- endfor %}
+    </fieldset>
+    <fieldset>
+      <legend>where links' flair shows</legend>
+      {%- for value, label in view.link_positions %}
+        <p class="choice-row">
+          <input type="radio"
+                 name="link_flair_position"
+                 id="link_flair_position_{{ value or 'none' }}"
+                 value="{{ value }}"
+                 {% if settings.link_flair_position == value %}checked{% endif %}>
+          <label for="link_flair_position_{{ value or 'none' }}">{{ label }}</label>
+        </p>
+      {%- endfor %}
+    </fieldset>
+    <p class="actions save-button">
+      <button type="submit" class="btn primary">save</button>
+    </p>
+  </form>
+  <h2>people's flair</h2>
+  <div class="flairgrant flairlist">
+    <form method="get" action="" class="flair-jump">
+      <input type="text"
+             name="jump"
+             placeholder="find someone"
+             aria-label="find someone">
+      <button type="submit" class="btn">find</button>
+    </form>
+    <div class="flairrow new-row">
+      <form method="post" action="{{ view.community.path }}api/flair">
+        {{ uh(view.viewer) }}
+        <input type="text" name="name" placeholder="username" aria-label="username">
+        {{ flair_fields() }}
+        <button type="submit" class="btn">give</button>
+      </form>
+    </div>
+    {%- for user in view.users %}
+      <div id="flairrow_{{ user.account_id }}" class="flairrow">
+        <form method="post" action="{{ view.community.path }}api/flair">
+          {{ uh(view.viewer) }}
+          <input type="hidden" name="name" value="{{ user.name }}">
+          <a href="/user/{{ user.name }}" class="flaircell">{{ user.name }}</a>
+          {{ flair_fields(user.text or '', user.css_class or '') }}
+          <button type="submit" class="btn">save</button>
+        </form>
+        <form method="post" action="{{ view.community.path }}api/deleteflair">
+          {{ uh(view.viewer) }}
+          <input type="hidden" name="name" value="{{ user.name }}">
+          <button type="submit" class="link-button flairdeletebtn">take away</button>
+        </form>
+      </div>
+    {%- endfor %}
+    {{ pages(none, '?after=' ~ view.after if view.after else none) }}
+  </div>
+  <h2>flair people can choose</h2>
+  {{ choices(view.user_templates, 'USER_FLAIR') }}
+  <h2>flair links can have</h2>
+  {{ choices(view.link_templates, 'LINK_FLAIR') }}
+{%- endblock %}

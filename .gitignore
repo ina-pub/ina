@@ -1,0 +1,14 @@
+/various
+*.bak
+.DS_Store
+.env
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+# C extension build output
+build/
+*.egg-info/
+*.so
+*.o

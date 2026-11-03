@@ -1,0 +1,88 @@
+{%- extends "base.html" -%}
+{%- from "macros/links.html" import link_thing, pages with context -%}
+{%- from "macros/communities.html" import sidebar, subscribe_button -%}
+{%- block pagename %}
+  {%- if view.community %}
+    <a href="{{ view.community.path }}"
+       class="pagename community-name">{{ view.community.name }}</a>
+  {%- else %}
+    <span class="pagename">search</span>
+  {%- endif %}
+{%- endblock %}
+{%- block side %}
+  {%- if view.community %}{{ sidebar(view, request) }}{% endif %}
+{%- endblock %}
+{%- block content %}
+  <form action="{{ view.action }}"
+        method="get"
+        class="search-form search-page">
+    <input type="text"
+           name="q"
+           value="{{ view.query }}"
+           placeholder="search"
+           aria-label="search"
+           maxlength="512">
+    <input type="hidden" name="sort" value="{{ view.sort }}">
+    <input type="hidden" name="t" value="{{ view.time_filter }}">
+    <button type="submit" class="btn">search</button>
+    {%- if view.community %}
+      <label class="choice-row">
+        <input type="checkbox"
+               name="restrict_community"
+               {% if view.restrict_community %}checked{% endif %}>
+        only in in/{{ view.community.name }}
+      </label>
+    {%- endif %}
+  </form>
+  {%- if view.unavailable %}
+    <p class="error">{{ view.unavailable_message }}</p>
+  {%- else %}
+    {%- if view.cleaned is not none %}
+      <p class="infotext notice">
+        {%- if view.cleaned %}
+          Part of that search couldn't be understood, so this is a search for "{{ view.cleaned }}".
+        {%- else %}
+          That search couldn't be understood.
+        {%- endif %}
+      </p>
+    {%- endif %}
+    <div class="menuarea">
+      <span class="dropdown-title">order by</span>
+      {%- for sort in view.sorts %}
+        <a href="{{ view.sort_query(sort) }}"
+           class="choice{% if view.sort == sort %} selected{% endif %}">{{ sort }}</a>
+      {%- endfor %}
+      <span class="dropdown-title">from the</span>
+      {%- for value, label in view.time_filters %}
+        <a href="{{ view.time_query(value) }}"
+           class="choice{% if view.time_filter == value %} selected{% endif %}">{{ label }}</a>
+      {%- endfor %}
+    </div>
+    {%- if view.community_rows %}
+      <section class="search-result-group communities">
+        <h2>communities</h2>
+        {%- for row in view.community_rows %}
+          <div class="search-result search-result-community">
+            {{ subscribe_button(view.viewer, row.community, row.is_subscriber, request.url.path ~ "?" ~ request.url.query) }}
+            <a href="{{ row.community.path }}" class="search-title">in/{{ row.community.name }}</a>
+            {{ row.community.title }}
+            <span class="search-subscribers">{{ row.community.subscriber_count|plural("member") }}</span>
+          </div>
+        {%- endfor %}
+        <a href="/ins/search?q={{ view.query|urlencode }}" class="more">more communities ›</a>
+      </section>
+    {%- endif %}
+    {%- if "link" in view.types %}
+      <div id="siteTable" class="sitetable linklisting search-result-group">
+        {%- for row in view.rows %}
+          {{ link_thing(row, view) }}
+        {%- else %}
+          {%- if view.query or view.restrict_community %}
+            <p id="noresults" class="empty">nothing matched</p>
+          {%- endif %}
+        {%- endfor %}
+      </div>
+      {{ pages(view.prev_query, view.next_query) }}
+    {%- endif %}
+  {%- endif %}
+{%- endblock %}

@@ -1,0 +1,51 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, field_class, uh -%}
+{%- from "macros/messages.html" import mail_tabs -%}
+{%- block tabs %}
+  {{ mail_tabs(view, 'compose') }}
+{%- endblock %}
+{%- block content %}
+  <h1>write a message</h1>
+  <form method="post"
+        action="/api/compose"
+        id="compose-message"
+        class="compose">
+    {{ uh(view.viewer) }}
+    {%- if view.from_communities %}
+      <p class="{{ field_class(view.errors, 'from_community') }}">
+        <label for="from_community">send as</label>
+        <select name="from_community" id="from_community">
+          <option value="">yourself (u/{{ view.viewer.name }})</option>
+          {%- for name in view.from_communities %}
+            <option value="{{ name }}"
+                    {% if view.form.from_community == name %}selected{% endif %}>the innkeepers of in/{{ name }}</option>
+          {%- endfor %}
+        </select>
+        {{ error_field(view.errors, 'from_community') }}
+      </p>
+    {%- endif %}
+    <p class="{{ field_class(view.errors, 'to') }}">
+      <label for="to">to <span class="details">a username, or in/name to write to a community's innkeepers</span></label>
+      <input type="text" name="to" id="to" value="{{ view.form.to }}">
+      {{ error_field(view.errors, 'to') }}
+    </p>
+    <p class="{{ field_class(view.errors, 'subject') }}">
+      <label for="subject">subject</label>
+      <input type="text"
+             name="subject"
+             id="subject"
+             value="{{ view.form.subject }}"
+             maxlength="100">
+      {{ error_field(view.errors, 'subject') }}
+    </p>
+    <p class="{{ field_class(view.errors, 'text') }}">
+      <label for="text">message</label>
+      <textarea name="text" id="text" rows="8">{{ view.form.text }}</textarea>
+      {{ error_field(view.errors, 'text') }}
+      {{ error_field(view.errors, 'ratelimit') }}
+    </p>
+    <p class="actions">
+      <button type="submit" class="btn primary">send</button>
+    </p>
+  </form>
+{%- endblock %}

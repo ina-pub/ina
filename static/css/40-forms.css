@@ -1,0 +1,524 @@
+/*
+ * Forms and buttons, the sidebar's boxes, and plain tables.
+ */
+
+input[type='text'],
+input[type='password'],
+input[type='email'],
+input[type='url'],
+input[type='search'],
+input[type='number'],
+select,
+textarea {
+  font: inherit;
+  color: var(--ina-text);
+  border: 1px solid var(--ina-border);
+  border-radius: 3px;
+  padding: 3px 5px;
+  background: var(--ina-background);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--ina-focus);
+  outline-offset: -1px;
+}
+
+button,
+.btn,
+input[type='submit'] {
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn,
+.c-btn,
+.save-button button,
+.usertext-buttons button,
+.pretty-form button[type='submit'],
+.sidebox button,
+.flairbox button,
+.add-member button,
+.friend-form button {
+  display: inline-block;
+  padding: 3px 12px;
+  border: 1px solid var(--ina-border);
+  border-radius: 4px;
+  background: var(--ina-panel);
+  color: var(--ina-text);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.btn:hover,
+.c-btn:hover,
+.usertext-buttons button:hover,
+.pretty-form button[type='submit']:hover {
+  border-color: var(--ina-muted);
+  text-decoration: none;
+}
+
+.btn.primary,
+.c-btn-primary,
+.usertext-buttons button.save,
+.pretty-form button[type='submit'].c-btn-primary {
+  background: var(--ina-purple-deep);
+  border-color: var(--ina-purple-deep);
+  color: var(--ina-accent-text);
+}
+
+.btn.primary:hover,
+.c-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+/* Field layouts: label above field, errors beside it. */
+.pretty-form .spacer,
+.roundfield {
+  margin: 0 0 10px;
+}
+
+.pretty-form label,
+.roundfield > .title,
+.roundfield .title {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.pretty-form input[type='checkbox'] + label,
+.pretty-form input[type='radio'] + label {
+  display: inline;
+  font-weight: normal;
+}
+
+.roundfield {
+  max-width: 600px;
+  padding: 8px 10px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-rule);
+  border-radius: 6px;
+}
+
+.roundfield-content input[type='text'],
+.roundfield-content input[type='url'],
+.roundfield-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.roundfield-description {
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+}
+
+.formtabs-content {
+  max-width: 620px;
+}
+
+.error-holder .error,
+span.error {
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+/* Fields: a label above its input, its error after it. */
+.field {
+  margin: 0 0 10px;
+  max-width: 420px;
+}
+
+.field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.field input[type='text'],
+.field input[type='password'],
+.field input[type='email'],
+.field input[type='url'],
+.field textarea,
+.field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 7px;
+}
+
+.field.has-error input,
+.field.has-error textarea {
+  border-color: var(--ina-error);
+}
+
+.field .error {
+  display: block;
+  margin: 3px 0 0;
+}
+
+.choice-row {
+  margin: 0 0 10px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.notice {
+  padding: 6px 10px;
+  background: var(--ina-notice);
+  border: 1px solid var(--ina-notice-edge);
+  border-radius: 4px;
+}
+
+/* Log in, and sign up beside it. */
+.auth-forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  margin: 12px 0;
+}
+
+.auth-form {
+  flex: 1 1 280px;
+  max-width: 360px;
+}
+
+.auth-form h1 {
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+
+/* The sidebar's boxes. */
+.titlebox h1 {
+  font-size: 1.35rem;
+  font-weight: bold;
+  margin: 0 0 4px;
+}
+
+.titlebox h1 a {
+  color: var(--ina-text);
+}
+
+.titlebox .membership {
+  margin: 4px 0;
+}
+
+.titlebox .subscribers {
+  margin-left: 6px;
+}
+
+.message-the-mods {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.titlebox .number {
+  font-weight: bold;
+}
+
+.titlebox .usertext-body {
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.titlebox .md {
+  font-size: 0.95rem;
+}
+
+.titlebox .bottom,
+.titlebox .age {
+  color: var(--ina-muted);
+  font-size: 0.8rem;
+}
+
+.titlebox .bottom {
+  border-top: 1px solid var(--ina-rule);
+  padding-top: 3px;
+  text-align: right;
+}
+
+.titlebox .karma {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.fancy-toggle-button .option,
+.friend-form button {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 0.85rem;
+  padding: 1px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--ina-accent);
+  text-decoration: none;
+}
+
+.fancy-toggle-button .add {
+  background: var(--ina-purple-deep);
+  color: var(--ina-accent-text);
+}
+
+.fancy-toggle-button .remove {
+  background: var(--ina-background);
+  color: var(--ina-accent);
+}
+
+.subscribe-form {
+  display: inline;
+}
+
+.community-type {
+  margin: 4px 0;
+  color: var(--ina-muted);
+  font-style: italic;
+}
+
+/* The submit and create buttons, as wide links. */
+.sidebox .morelink a,
+.sidebox .morelink {
+  display: block;
+}
+
+.sidebox .morelink a {
+  padding: 7px 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.05rem;
+  color: var(--ina-accent);
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-radius: 6px;
+}
+
+.sidebox .morelink a:hover {
+  border-color: var(--ina-purple-deep);
+  text-decoration: none;
+}
+
+.sidecontentbox {
+  border: 1px solid var(--ina-border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.sidecontentbox h2.title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--ina-muted);
+  margin: 0 0 4px;
+  text-transform: lowercase;
+}
+
+.sidecontentbox ul.content {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.sidecontentbox .create-multi input[type='text'] {
+  width: 65%;
+}
+
+.flairbox .tagline {
+  margin: 4px 0;
+}
+
+.flair-choices ul {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+}
+
+/* The logged-out sidebar's login box. */
+.login-form-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-radius: 4px;
+}
+
+.login-form-side #remember-me {
+  grid-column: 1 / 2;
+  font-size: 0.85rem;
+}
+
+.login-form-side .recover-password {
+  display: block;
+  margin-top: 2px;
+}
+
+.login-form-side .submit {
+  grid-column: 2 / 3;
+  text-align: right;
+  align-self: end;
+}
+
+/* The search box at the top of the sidebar. */
+#search {
+  position: relative;
+}
+
+#search input[type='text'],
+#search input[name='q'] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 1.05rem;
+}
+
+#search input[type='submit'] {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: url(/static/img/search.svg) center no-repeat;
+}
+
+#searchexpando {
+  display: none;
+  margin-top: 4px;
+  padding: 6px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+/* "limit my search to" shows while the search box has focus. */
+#search:focus-within #searchexpando {
+  display: block;
+}
+
+/* Tables: preferences, members, moderators and the like. */
+table.generic-table,
+table.member-table,
+table.moderator-table,
+table.usertable {
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+table.generic-table th,
+table.generic-table td,
+table.member-table td,
+table.moderator-table th,
+table.moderator-table td,
+table.usertable td {
+  padding: 3px 12px 3px 0;
+  border-bottom: 1px solid var(--ina-rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+table.preftable {
+  border-collapse: collapse;
+}
+
+table.preftable th {
+  text-align: right;
+  vertical-align: top;
+  padding: 6px 12px 6px 0;
+  white-space: nowrap;
+}
+
+table.preftable td {
+  padding: 6px 0;
+}
+
+.prefright {
+  line-height: 1.7;
+}
+
+.save-preferences {
+  margin: 12px 0;
+}
+
+.add-member {
+  margin: 8px 0;
+}
+
+.add-member input[type='text'],
+.add-member textarea {
+  margin: 0 4px 4px 0;
+}
+
+.add-member textarea {
+  display: block;
+}
+
+/* Settings: groups of choices, each under its own heading. */
+.settings fieldset,
+.settings-section {
+  border: 1px solid var(--ina-rule);
+  border-radius: 6px;
+  padding: 6px 12px 4px;
+  margin: 0 0 12px;
+  max-width: 640px;
+}
+
+.settings legend,
+.settings-section h2 {
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 0 4px;
+}
+
+.group-label {
+  margin: 6px 0 2px;
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+}
+
+.choice-row label {
+  margin: 0 4px;
+}
+
+input.short {
+  width: 5em;
+}
+
+.post-kind {
+  border: 0;
+  padding: 0;
+  margin: 0 0 10px;
+}
+
+.post-kind legend {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.post-kind .choice-row {
+  display: inline-block;
+  margin-right: 16px;
+}
+
+.multi-edit {
+  margin: 4px 0 8px;
+}
+
+.multi-edit input[type='text'],
+.multi-edit textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+}
+
+.multi-details .communities .multi-edit {
+  display: inline;
+  margin: 0 0 0 6px;
+}

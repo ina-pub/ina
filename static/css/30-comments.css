@@ -1,0 +1,190 @@
+/*
+ * Comment threads, the forms for replying and editing, and messages in the inbox.
+ */
+
+.commentarea {
+  margin-top: 12px;
+}
+
+.panestack-title {
+  border-bottom: 1px dotted var(--ina-border);
+  padding-bottom: 2px;
+  margin-bottom: 4px;
+}
+
+.panestack-title .title {
+  font-size: 1.15rem;
+}
+
+.login-required-comment {
+  margin: 8px 0;
+}
+
+.comment {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 0 6px;
+}
+
+.comment > .parent,
+.comment > .child,
+.comment > .clearleft {
+  flex-basis: 100%;
+}
+
+.comment > .midcol {
+  width: 1.6em;
+}
+
+.comment > .midcol .arrow {
+  width: 12px;
+  height: 11px;
+  margin: 1px auto 3px;
+}
+
+.comment > .entry {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment .tagline {
+  font-size: 0.8rem;
+}
+
+.comment .tagline .score {
+  color: var(--ina-text);
+}
+
+.comment .score-hidden {
+  color: var(--ina-faint);
+  font-style: italic;
+}
+
+button.expand {
+  color: var(--ina-muted);
+  margin-right: 3px;
+}
+
+.comment .md {
+  font-size: 1rem;
+}
+
+.comment.deleted > .entry .tagline .author,
+.comment.deleted > .entry .md {
+  color: var(--ina-faint);
+}
+
+/* Replies hang under their parent, with a line down the left. */
+.comment > .child {
+  margin-left: 1.6em;
+}
+
+.comment > .child > .sitetable {
+  border-left: 1px dotted var(--ina-border);
+  padding-left: 8px;
+  margin-top: 4px;
+}
+
+.comment.collapsed > .entry .usertext,
+.comment.collapsed > .entry .buttons,
+.comment.collapsed > .child,
+.comment.collapsed > .midcol .arrow {
+  display: none;
+}
+
+.comment.collapsed > .entry .tagline {
+  color: var(--ina-faint);
+  font-style: italic;
+}
+
+.thing.comment:target > .entry,
+.comment.highlighted > .entry {
+  background: var(--ina-notice);
+}
+
+.morecomments,
+.deepthread {
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.morechildren,
+.morerecursion {
+  margin: 0 0 6px 1.6em;
+}
+
+/* The textarea for replying, editing and composing. */
+form.usertext {
+  margin: 4px 0 10px;
+}
+
+.usertext-edit textarea {
+  width: 100%;
+  max-width: 50em;
+  min-height: 6em;
+  box-sizing: border-box;
+  font: 1rem / 1.4 var(--ina-font);
+  padding: 4px 6px;
+  border: 1px solid var(--ina-border);
+  border-radius: 3px;
+}
+
+.usertext-edit .md {
+  max-width: none;
+}
+
+.usertext-buttons {
+  margin-top: 4px;
+}
+
+.usertext-buttons button,
+.usertext-buttons a.cancel {
+  margin-right: 6px;
+}
+
+.bottom-area .error-holder {
+  display: block;
+}
+
+/* The author's edit form and the text it edits, one hidden at a time. */
+.usertext > .usertext-body[hidden],
+.usertext > form.edit-usertext[hidden] {
+  display: none;
+}
+
+/* Messages: the inbox, modmail and conversations. */
+.message {
+  padding: 6px 8px;
+  margin: 0 0 6px;
+  border: 1px solid var(--ina-rule);
+  border-radius: 4px;
+  background: var(--ina-background);
+}
+
+.message.new {
+  background: var(--ina-new);
+  border-color: var(--ina-notice-edge);
+}
+
+.message .subject {
+  margin: 0 0 2px;
+  font-weight: bold;
+}
+
+.message .tagline .author,
+.message .tagline .dest {
+  font-weight: bold;
+}
+
+.message .md {
+  margin: 4px 0;
+}
+
+.message .child .message {
+  margin-left: 16px;
+}
+
+.inbox-tabs,
+.message-list {
+  margin-bottom: 8px;
+}

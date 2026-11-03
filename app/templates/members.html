@@ -1,0 +1,179 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/forms.html" import error_field, uh -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- macro unfriend(name, type, label='take off') -%}
+  <form method="post" action="/api/unfriend" class="unfriend">
+    {{ uh(view.viewer) }}
+    <input type="hidden" name="community" value="{{ view.community.name }}">
+    <input type="hidden" name="name" value="{{ name }}">
+    <input type="hidden" name="type" value="{{ type }}">
+    <button type="submit" class="link-button">{{ label }}</button>
+  </form>
+{%- endmacro -%}
+{%- macro moderators() -%}
+  {%- if view.invited %}
+    <form method="post"
+          action="/api/accept_moderator_invite"
+          class="accept-invite">
+      {{ uh(view.viewer) }}
+      <input type="hidden" name="community" value="{{ view.community.name }}">
+      <p>You're invited to help moderate in/{{ view.community.name }}.</p>
+      <button type="submit" class="btn primary">join the innkeepers</button>
+    </form>
+  {%- endif %}
+  <table class="moderator-table">
+    <thead>
+      <tr>
+        <th scope="col">who</th>
+        <th scope="col">since</th>
+        <th scope="col">may</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for moderator in view.moderators %}
+        <tr>
+          <td>
+            <a href="/user/{{ moderator.name }}">{{ moderator.name }}</a>
+          </td>
+          <td>
+            <time datetime="{{ moderator.added.isoformat() }}">{{ moderator.added.strftime("%Y-%m-%d") }}</time>
+          </td>
+          <td>{{ view.permissions(moderator)|join(', ') }}</td>
+          <td>
+            {%- if view.viewer and moderator.name == view.viewer.name %}
+              {{ unfriend(moderator.name, 'moderator', 'step down') }}
+            {%- elif view.viewer and view.can_edit %}
+              {{ unfriend(moderator.name, 'moderator') }}
+            {%- endif %}
+          </td>
+        </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- if view.can_edit %}
+    {%- if view.invites %}
+      <h2>invited, not yet joined</h2>
+      <ul class="invites">
+        {%- for invite in view.invites %}
+          <li>
+            {{ invite.name }} <span class="details">{{ view.permissions(invite)|join(', ') }}</span>
+            {{ unfriend(invite.name, 'moderator_invite', 'take back') }}
+          </li>
+        {%- endfor %}
+      </ul>
+    {%- endif %}
+    <h2>invite someone</h2>
+    <form method="post" action="/api/friend" class="add-member invite">
+      {{ uh(view.viewer) }}
+      <input type="hidden" name="community" value="{{ view.community.name }}">
+      <input type="hidden" name="type" value="moderator_invite">
+      <input type="text" name="name" placeholder="username" aria-label="username">
+      <input type="text"
+             name="permissions"
+             value="+all"
+             aria-label="what they may do">
+      <button type="submit" class="btn">invite</button>
+      <span class="details">what they may do: +all, or -all then each of +posts, +access, +config, +flair, +mail, +wiki</span>
+    </form>
+    <h2>change what an innkeeper may do</h2>
+    <form method="post"
+          action="/api/setpermissions"
+          class="add-member permissions">
+      {{ uh(view.viewer) }}
+      <input type="hidden" name="community" value="{{ view.community.name }}">
+      <input type="hidden" name="type" value="moderator">
+      <input type="text" name="name" placeholder="username" aria-label="username">
+      <input type="text"
+             name="permissions"
+             value="+all"
+             aria-label="what they may do">
+      <button type="submit" class="btn">change</button>
+    </form>
+  {%- endif %}
+{%- endmacro -%}
+{%- macro members() -%}
+  {%- set type = {'banned': 'banned', 'muted': 'muted', 'contributors': 'contributor', 'wikibanned': 'wikibanned', 'wikicontributors': 'wikicontributor'}[view.which] -%}
+  {%- set ban = type in ('banned', 'wikibanned') -%}
+  <form method="post" action="/api/friend" class="add-member">
+    {{ uh(view.viewer) }}
+    <input type="hidden" name="community" value="{{ view.community.name }}">
+    <input type="hidden" name="type" value="{{ type }}">
+    <input type="text" name="name" placeholder="username" aria-label="username">
+    {%- if type == "banned" %}
+      <input type="text"
+             name="ban_reason"
+             maxlength="100"
+             placeholder="why (they won't see this)"
+             aria-label="why">
+    {%- endif %}
+    {%- if ban %}
+      <input type="number"
+             name="duration"
+             class="short"
+             min="1"
+             max="999"
+             placeholder="days"
+             aria-label="days">
+      <span class="details">no days: for good</span>
+    {%- endif %}
+    {%- if type == "banned" %}
+      <textarea name="ban_message"
+                rows="3"
+                placeholder="a message to them, sent with the ban"
+                aria-label="message to them"></textarea>
+    {%- endif %}
+    {%- if ban %}
+      <input type="text"
+             name="note"
+             maxlength="300"
+             placeholder="a note for the other innkeepers"
+             aria-label="note">
+    {%- endif %}
+    <button type="submit"
+            class="btn">{{ 'ban' if ban else 'mute' if type == 'muted' else 'add' }}</button>
+  </form>
+  <table class="member-table">
+    <tbody>
+      {%- for member in view.members %}
+        <tr>
+          <td>
+            <a href="/user/{{ member.name }}">{{ member.name }}</a>
+          </td>
+          <td>
+            <time datetime="{{ member.created.isoformat() }}">{{ member.created.strftime("%Y-%m-%d") }}</time>
+          </td>
+          {%- if ban %}
+            <td>{{ member.note }}</td>
+            <td>{{ 'until ' ~ member.expires.strftime("%Y-%m-%d") if member.expires else 'for good' }}</td>
+          {%- elif type == "muted" %}
+            <td>until {{ member.expires.strftime("%Y-%m-%d %H:%M UTC") }}</td>
+          {%- endif %}
+          <td>{{ unfriend(member.name, type, 'lift' if ban or type == 'muted' else 'take off') }}</td>
+        </tr>
+      {%- else %}
+        <tr>
+          <td class="empty">nobody yet</td>
+        </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+{%- endmacro -%}
+{%- block content %}
+  <h1>{{ view.lists[view.which] }}</h1>
+  {{ error_field(view.errors, 'name') }}
+  {{ error_field(view.errors, 'type') }}
+  {{ error_field(view.errors, 'permissions') }}
+  {{ error_field(view.errors, 'duration') }}
+  {%- if view.which == "moderators" %}
+    {{ moderators() }}
+  {%- else %}
+    {{ members() }}
+  {%- endif %}
+{%- endblock %}

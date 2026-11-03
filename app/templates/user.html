@@ -1,0 +1,152 @@
+{%- extends "base.html" -%}
+{%- from "macros/admin.html" import account_forms -%}
+{%- from "macros/links.html" import link_thing, pages with context -%}
+{%- from "macros/votes.html" import arrows -%}
+{%- from "macros/flair.html" import author_flair -%}
+{%- from "macros/usertext.html" import author_buttons -%}
+{%- from "macros/marks.html" import toggle -%}
+{%- macro profile_comment(item) -%}
+  {#- A comment away from its thread: the post it answers comes first. -#}
+  {%- set c, link = item.comment, item.link -%}
+  <article class="thing id-{{ c.fullname }} comment profile-comment{% if item.saved %} saved{% endif %}"
+           data-fullname="{{ c.fullname }}"
+           data-community="{{ c.community_name }}"
+           data-type="comment">
+    <p class="parent">
+      on <a href="{{ item.link_permalink if link.is_self else link.url }}"
+            class="title">{{ link.title }}</a>
+      <span class="tagline">by <a href="/user/{{ link.author_name }}"
+                                  class="author">{{ link.author_name }}</a>
+      in <a href="/in/{{ link.community_name }}/"
+            class="community">in/{{ link.community_name }}</a></span>
+    </p>
+    <div class="midcol {{ item.vote_class }}">
+      {%- call arrows(view.viewer, c.fullname, item.likes, request.url.path) %}
+      {% endcall %}
+    </div>
+    <div class="entry {{ item.vote_class }}">
+      <p class="tagline">
+        {%- if item.author_flair and item.author_flair.position == "left" %}{{ author_flair(item.author_flair) }} {% endif %}
+        <a href="/user/{{ c.author_name }}" class="author">{{ c.author_name }}</a>
+        {%- if item.author_flair and item.author_flair.position == "right" %} {{ author_flair(item.author_flair) }}{% endif %}
+        {%- set down, same, up = scores(c.score, item.likes) %}
+        <span class="score dislikes">{{ down|plural("point") }}</span>
+        <span class="score unvoted">{{ same|plural("point") }}</span>
+        <span class="score likes">{{ up|plural("point") }}</span>
+        · <time datetime="{{ c.created.isoformat() }}"
+                class="live-timestamp">{{ c.created|age(view.now) }}</time>
+      </p>
+      <div class="usertext">
+        <div class="usertext-body">
+          <div class="md">{{ c.body_html|safe }}</div>
+        </div>
+      </div>
+      <ul class="flat-list buttons">
+        <li>
+          <a href="{{ item.permalink }}" class="bylink">link</a>
+        </li>
+        <li>
+          <a href="{{ item.permalink }}?context=3" class="bylink">in context</a>
+        </li>
+        <li>
+          <a href="{{ item.link_permalink }}"
+             class="bylink full-comments">whole thread ({{ link.comment_count }})</a>
+        </li>
+        {%- if view.viewer %}{{ toggle(view.viewer, c.fullname, request.url.path, 'save', item.saved) }}{% endif %}
+        {%- if view.viewer and c.author_name == view.viewer.name %}
+          {{ author_buttons(view.viewer, c.fullname, item.permalink, request.url.path) }}
+        {%- endif %}
+      </ul>
+    </div>
+  </article>
+{%- endmacro -%}
+{%- block tabs %}
+  <ul class="tabmenu">
+    {%- for tab in view.tabs %}
+      <li {% if view.tab == tab %}class="selected"{% endif %}>
+        <a href="{{ view.tab_path(tab) }}" class="choice">{{ tab }}</a>
+      </li>
+    {%- endfor %}
+  </ul>
+{%- endblock %}
+{%- block body_class %}profile-page{% endblock -%}
+{%- block side %}
+  <aside class="side">
+    <section class="spacer">
+      <div class="titlebox">
+        <h1>{{ view.account.name }}</h1>
+        {%- if view.viewer and not view.own %}
+          <form method="post"
+                action="/api/{{ 'unfriend' if view.is_friend else 'friend' }}"
+                class="friend-form">
+            <input type="hidden" name="uh" value="{{ view.viewer.modhash }}">
+            <input type="hidden" name="type" value="friend">
+            <input type="hidden" name="name" value="{{ view.account.name }}">
+            <input type="hidden" name="dest" value="{{ request.url.path }}">
+            <button type="submit"
+                    class="btn">{{ 'unfriend' if view.is_friend else 'add as a friend' }}</button>
+          </form>
+        {%- endif %}
+        {%- if view.account.suspended %}
+          <p class="error">This account is suspended.</p>
+        {%- else %}
+          <dl class="karma-list">
+            <dt>post karma</dt>
+            <dd class="karma">
+              {{ view.account.link_karma }}
+            </dd>
+            <dt>comment karma</dt>
+            <dd class="karma comment-karma">
+              {{ view.account.comment_karma }}
+            </dd>
+          </dl>
+          <p class="bottom">
+            <span class="age">here since
+              <time datetime="{{ view.account.created.isoformat() }}">{{ view.account.created.strftime("%B %-d, %Y") }}</time>
+            </span>
+          </p>
+        {%- endif %}
+      </div>
+    </section>
+    {%- if view.viewer and view.viewer.admin_mode %}
+      <section class="spacer admin-box">
+        <h2>admin</h2>
+        {%- if view.account.in_timeout %}
+          <p class="details">
+            suspended until
+            <time datetime="{{ view.account.timeout_expires.isoformat() }}">{{ view.account.timeout_expires.strftime("%B %-d, %Y") }}</time>
+          </p>
+        {%- endif %}
+        {{ account_forms(view.viewer, view.account, request.url.path) }}
+      </section>
+    {%- endif %}
+  </aside>
+{%- endblock %}
+{%- block content %}
+  <div class="menuarea">
+    <span class="dropdown-title">order by</span>
+    {%- for sort in view.sorts %}
+      <a href="?sort={{ sort }}"
+         class="choice{% if view.sort == sort %} selected{% endif %}">{{ sort }}</a>
+    {%- endfor %}
+    {%- if view.timed %}
+      <span class="dropdown-title">from the</span>
+      {%- for value, label in view.time_filters %}
+        <a href="?sort={{ view.sort }}&amp;t={{ value }}"
+           class="choice{% if view.time_filter == value %} selected{% endif %}">{{ label }}</a>
+      {%- endfor %}
+    {%- endif %}
+  </div>
+  <div id="siteTable" class="sitetable linklisting">
+    {%- for item in view.items %}
+      {%- if item.comment is defined %}
+        {{ profile_comment(item) }}
+      {%- else %}
+        {{ link_thing(item, view) }}
+      {%- endif %}
+    {%- else %}
+      <p id="noresults" class="empty">nothing here yet</p>
+    {%- endfor %}
+  </div>
+  {{ pages(none, view.next_query) }}
+{%- endblock %}

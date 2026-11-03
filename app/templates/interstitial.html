@@ -1,0 +1,64 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import uh -%}
+{%- block content %}
+  <section class="interstitial">
+    {%- if view.kind == "over18" %}
+      <img class="interstitial-image"
+           src="/static/img/over18.svg"
+           alt=""
+           height="150"
+           width="150">
+      <div class="md">
+        <h3>This community is for adults</h3>
+        <p>What's posted here is meant for people eighteen or older. Are you, and do you want to go on?</p>
+      </div>
+      <form method="post" action="/over18">
+        {{ uh(view.viewer) }}
+        <input type="hidden" name="dest" value="{{ view.dest }}">
+        <p class="buttons">
+          <button class="btn" type="submit" name="over18" value="no">take me back</button>
+          <button class="btn primary" type="submit" name="over18" value="yes">yes, go on</button>
+        </p>
+      </form>
+    {%- else %}
+      <img class="interstitial-image"
+           src="/static/img/quarantine.svg"
+           alt=""
+           height="150"
+           width="150">
+      <div class="md">
+        {%- if view.can_opt_in %}
+          <h3>This community is quarantined</h3>
+          <p>
+            It gathers content that many people find shocking or offensive, so ina keeps it out of listings and search. Do you want to see it anyway?
+          </p>
+        {%- elif view.viewer %}
+          <h3>This community is quarantined</h3>
+          <p>
+            Seeing it takes a <a href="/prefs/update">confirmed email address</a> on your account.
+          </p>
+        {%- else %}
+          <h3>This community is quarantined</h3>
+          <p>
+            <a href="/login?dest={{ view.dest|urlencode }}">Log in</a>, with a confirmed email address on your account, to see it.
+          </p>
+        {%- endif %}
+      </div>
+      {%- if view.can_opt_in %}
+        <form method="post" action="/quarantine">
+          {{ uh(view.viewer) }}
+          <input type="hidden" name="community_name" value="{{ view.community_name }}">
+          <input type="hidden" name="dest" value="{{ view.dest }}">
+          <p class="buttons">
+            <button class="btn" type="submit" name="accept" value="no">take me back</button>
+            <button class="btn primary" type="submit" name="accept" value="yes">show me</button>
+          </p>
+        </form>
+      {%- else %}
+        <p class="buttons">
+          <a href="/" class="btn">back to the front page</a>
+        </p>
+      {%- endif %}
+    {%- endif %}
+  </section>
+{%- endblock %}

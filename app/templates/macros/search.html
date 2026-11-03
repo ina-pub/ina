@@ -1,0 +1,25 @@
+{#- The search box at the top of the sidebar. In a community it searches only there, unless the
+    box is unticked. -#}
+{%- macro search_box(community=none) -%}
+  <div class="spacer">
+    <form action="{{ community.path ~ 'search' if community else '/search' }}"
+          method="get"
+          id="search"
+          role="search">
+      <input type="text"
+             name="q"
+             placeholder="search{{ ' ' ~ community.name if community }}"
+             aria-label="search"
+             maxlength="512">
+      <input type="submit" value="" title="search">
+      {%- if community %}
+        <div id="searchexpando">
+          <label>
+            <input type="checkbox" name="restrict_community" checked>
+            only in in/{{ community.name }}
+          </label>
+        </div>
+      {%- endif %}
+    </form>
+  </div>
+{%- endmacro -%}

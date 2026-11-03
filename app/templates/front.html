@@ -1,0 +1,74 @@
+{%- extends "base.html" -%}
+{%- from "macros/links.html" import listing, sort_tabs with context -%}
+{%- from "macros/search.html" import search_box -%}
+{%- block pagename %}
+  {%- if view.where == "all" %}
+    <a href="/in/all/" class="pagename community-name">all</a>
+  {%- elif view.where == "friends" %}
+    <a href="/in/friends/" class="pagename community-name">friends</a>
+  {%- elif view.domain %}
+    <a href="/domain/{{ view.domain }}/" class="pagename community-name">{{ view.domain }}</a>
+  {%- endif %}
+{%- endblock %}
+{%- block tabs %}
+  {{ sort_tabs(view.listing) }}
+{%- endblock %}
+{%- block side %}
+  <aside class="side">
+    {{ search_box() }}
+    {%- if not view.viewer %}
+      <section class="spacer">
+        <div class="sidecontentbox welcome">
+          <h2 class="title">welcome to ina</h2>
+          <p>Communities post links and talk them over; the best rise to the top.</p>
+          <p>
+            <a href="/login?dest={{ request.url.path|urlencode }}"
+               class="login-required">log in or sign up</a>
+            to vote, comment and join communities.
+          </p>
+        </div>
+      </section>
+    {%- endif %}
+    <section class="spacer sidebox submit">
+      <div class="morelink">
+        <a href="/submit" class="login-required">post a link</a>
+      </div>
+    </section>
+    <section class="spacer sidebox submit">
+      <div class="morelink">
+        <a href="/submit?selftext=true" class="login-required">write a post</a>
+      </div>
+    </section>
+    {%- if view.viewer %}
+      <section class="spacer">
+        <div class="sidecontentbox multis">
+          <h2 class="title">your multis</h2>
+          <ul class="content">
+            {%- for multi in view.multis %}
+              <li>
+                <a href="{{ multi.path }}">{{ multi.display_name or multi.name }}</a>
+              </li>
+            {%- endfor %}
+          </ul>
+          <form method="post" action="/api/multi" class="create-multi">
+            <input type="hidden" name="uh" value="{{ view.viewer.modhash }}">
+            <input type="text"
+                   name="name"
+                   placeholder="name a new one"
+                   maxlength="21"
+                   aria-label="new multi's name">
+            <button type="submit">make</button>
+          </form>
+        </div>
+      </section>
+    {%- endif %}
+    <section class="spacer sidebox create">
+      <div class="morelink">
+        <a href="/ins/create" class="login-required">start a community</a>
+      </div>
+    </section>
+  </aside>
+{%- endblock %}
+{%- block content %}
+  {{ listing(view, view.listing) }}
+{%- endblock %}

@@ -1,0 +1,31 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/links.html" import link_thing with context -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block tabs %}
+  <ul class="tabmenu">
+    <li>
+      <a href="{{ view.row.permalink }}" class="choice">comments</a>
+    </li>
+    <li class="selected">
+      <a href="{{ request.url.path }}" class="choice">elsewhere ({{ view.others|length }})</a>
+    </li>
+  </ul>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- block content %}
+  <div id="siteTable"
+       class="sitetable linklisting">{{ link_thing(view.row, view, show_community=False) }}</div>
+  <h2 class="panestack-title">the same link in other communities</h2>
+  <div id="siteTable_duplicates" class="sitetable linklisting">
+    {%- for row in view.others %}
+      {{ link_thing(row, view) }}
+    {%- else %}
+      <p id="noresults" class="empty">nobody has posted it anywhere else</p>
+    {%- endfor %}
+  </div>
+{%- endblock %}

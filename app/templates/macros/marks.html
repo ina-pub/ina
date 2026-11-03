@@ -1,0 +1,16 @@
+{#- Save and hide: plain forms posting to /api/save, /api/hide and their undoing. The JS sends the
+    same form with fetch, then flips "save" and "unsave", or takes a hidden link off the page. -#}
+{%- from "macros/forms.html" import uh -%}
+{%- macro toggle(viewer, fullname, dest, verb, marked) -%}
+  <li>
+    <form method="post"
+          action="/api/{{ 'un' if marked }}{{ verb }}"
+          class="toggle-mark"
+          data-verb="{{ verb }}">
+      {{ uh(viewer) }}
+      <input type="hidden" name="id" value="{{ fullname }}">
+      <input type="hidden" name="dest" value="{{ dest }}">
+      <button type="submit" class="link-button">{{ 'un' if marked }}{{ verb }}</button>
+    </form>
+  </li>
+{%- endmacro -%}

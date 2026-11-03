@@ -1,0 +1,518 @@
+/*
+ * Links in listings: the rank, the vote arrows and score, the thumbnail, the title and tagline,
+ * and the row of buttons underneath.
+ */
+
+.sitetable {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.thing {
+  margin: 0 0 8px;
+  overflow: hidden;
+}
+
+.thing .parent {
+  margin: 0;
+}
+
+.link {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.link > .clearleft,
+.link > .child,
+.link > .parent {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.link .rank {
+  width: 2.2em;
+  margin-top: 14px;
+  text-align: right;
+  color: var(--ina-faint);
+  font-size: 1.1rem;
+}
+
+.link .entry {
+  flex: 1;
+  min-width: 0;
+}
+
+.thing.stickied .title a.title,
+.thing .stickied-tagline {
+  color: var(--ina-moderator);
+}
+
+/* The vote arrows: triangles drawn in CSS, and the three scores, of which one shows. */
+.midcol {
+  width: 3em;
+  text-align: center;
+  flex: none;
+}
+
+.midcol form.vote {
+  display: contents;
+}
+
+.arrow {
+  display: block;
+  width: 15px;
+  height: 14px;
+  margin: 2px auto;
+  padding: 0;
+  border: 0;
+  background: var(--ina-faint);
+  cursor: pointer;
+}
+
+.arrow.up,
+.arrow.upmod {
+  clip-path: polygon(50% 0, 100% 62%, 70% 62%, 70% 100%, 30% 100%, 30% 62%, 0 62%);
+}
+
+.arrow.down,
+.arrow.downmod {
+  clip-path: polygon(30% 0, 70% 0, 70% 38%, 100% 38%, 50% 100%, 0 38%, 30% 38%);
+}
+
+.arrow:hover {
+  background: var(--ina-muted);
+}
+
+.arrow.upmod {
+  background: var(--ina-up);
+}
+
+.arrow.downmod {
+  background: var(--ina-down);
+}
+
+.midcol .score {
+  font-weight: bold;
+  color: var(--ina-faint);
+  font-size: 1rem;
+}
+
+/* Each score is drawn three ways, for no vote, an upvote and a downvote; the class on the
+   midcol (links) or the entry (comments) says which shows, so voting needs no new markup. */
+.score.likes,
+.score.dislikes,
+.likes .score.unvoted,
+.dislikes .score.unvoted {
+  display: none;
+}
+
+.likes .score.likes {
+  display: inline;
+  color: var(--ina-up);
+}
+
+.dislikes .score.dislikes {
+  display: inline;
+  color: var(--ina-down);
+}
+
+.midcol .score {
+  display: block;
+}
+
+.midcol .score.likes,
+.midcol .score.dislikes,
+.midcol.likes .score.unvoted,
+.midcol.dislikes .score.unvoted {
+  display: none;
+}
+
+.midcol.likes .score.likes,
+.midcol.dislikes .score.dislikes {
+  display: block;
+}
+
+/* Thumbnails: the image, or a placeholder that says what kind of link it is. */
+.thumbnail {
+  flex: none;
+  width: 70px;
+  margin: 0 8px 0 2px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.thumbnail img {
+  display: block;
+  margin: 0 auto;
+  max-width: 70px;
+  border-radius: 3px;
+}
+
+.thumbnail.self,
+.thumbnail.default,
+.thumbnail.nsfw {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  border-radius: 4px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-rule);
+  color: var(--ina-faint);
+}
+
+/* Icons are masks over the text colour, so they follow the theme. */
+.thumbnail.self::before,
+.thumbnail.default::before,
+.expando-button::before {
+  content: '';
+  display: block;
+  background: currentcolor;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.thumbnail.self::before,
+.thumbnail.default::before {
+  width: 24px;
+  height: 24px;
+}
+
+.thumbnail.self {
+  --icon: url(/static/img/icons/text.svg);
+}
+
+.thumbnail.default {
+  --icon: url(/static/img/icons/link.svg);
+}
+
+.thumbnail.nsfw::before {
+  content: '18+';
+  color: var(--ina-nsfw);
+  font: bold 1rem var(--ina-font);
+}
+
+.thumbnail:hover {
+  text-decoration: none;
+}
+
+/* The title line and the tagline beneath it. */
+.entry .title {
+  margin: 0 0 1px;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.entry a.title {
+  color: var(--ina-title);
+}
+
+.entry a.title:visited {
+  color: var(--ina-visited);
+}
+
+.entry .domain {
+  font-size: 0.8rem;
+  color: var(--ina-muted);
+  margin-left: 3px;
+  white-space: nowrap;
+}
+
+.entry .domain a {
+  color: var(--ina-muted);
+}
+
+.tagline {
+  color: var(--ina-muted);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.tagline a {
+  color: var(--ina-link);
+}
+
+.tagline .author,
+.author {
+  font-weight: normal;
+}
+
+a.author.moderator,
+.userattrs .moderator {
+  color: var(--ina-moderator);
+  font-weight: bold;
+}
+
+a.author.admin {
+  color: var(--ina-admin);
+  font-weight: bold;
+}
+
+a.author.submitter {
+  color: var(--ina-submitter);
+  font-weight: bold;
+}
+
+a.author.friend {
+  color: var(--ina-friend);
+  font-weight: bold;
+}
+
+/* "mod" beside a moderator speaking as one. */
+.userattrs {
+  font-size: 0.75em;
+  font-weight: bold;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--ina-moderator);
+  /* White on the light theme's green, dark on the dark theme's lighter one. */
+  color: var(--ina-background);
+}
+
+.userattrs.admin {
+  background: var(--ina-admin);
+}
+
+a.userattrs:hover {
+  text-decoration: none;
+}
+
+.edited-timestamp {
+  cursor: help;
+}
+
+/* Stamps and flair beside titles and names. */
+.stamp {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1.3;
+  padding: 0 3px;
+  border: 1px solid currentcolor;
+  border-radius: 3px;
+  vertical-align: 1px;
+}
+
+.nsfw-stamp {
+  color: var(--ina-nsfw);
+}
+
+.nsfw-stamp abbr {
+  text-decoration: none;
+}
+
+.flair,
+.linkflairlabel {
+  display: inline-block;
+  max-width: 20em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: 1px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  padding: 0 4px;
+  margin: 0 3px;
+  color: var(--ina-text);
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-radius: 3px;
+}
+
+/* The buttons under a link or comment. */
+.buttons {
+  font-size: 0.8rem;
+}
+
+.buttons li {
+  margin-right: 8px;
+}
+
+.buttons a,
+.buttons button.link-button,
+.buttons details > summary {
+  color: var(--ina-muted);
+  font-weight: bold;
+}
+
+.buttons a.comments {
+  color: var(--ina-muted);
+}
+
+.removed-mark,
+.approved-mark {
+  font-weight: bold;
+}
+
+.removed-mark {
+  color: var(--ina-error);
+}
+
+.approved-mark {
+  color: var(--ina-success);
+}
+
+/* Report, delete and block ask first, in a details box on the button row. */
+details.report-form,
+details.confirm-form {
+  display: inline;
+}
+
+details.report-form > summary,
+details.confirm-form > summary {
+  display: inline;
+  list-style: none;
+  cursor: pointer;
+}
+
+details.report-form > summary::-webkit-details-marker,
+details.confirm-form > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Chrome puts what follows a summary in a block of its own. Inline, but only while open: a
+   closed box hides its content with content-visibility, which inline boxes ignore. */
+details.report-form[open]::details-content,
+details.confirm-form[open]::details-content,
+details.confirm-form > form {
+  display: inline;
+}
+
+details.report-form > form,
+details.confirm-form > form {
+  margin-left: 4px;
+  font-weight: normal;
+  color: var(--ina-text);
+}
+
+details.report-form input[type='text'] {
+  font-size: 0.8rem;
+  width: 14em;
+}
+
+/* Expandos: a self post's text or an image, opened under the link. */
+/* Beside both the tagline and the buttons, so each lines up with the next. */
+/* Beside a link's tagline and buttons, exactly as tall as the two rows, so its top meets the
+   tagline's and its bottom the thumbnail's. */
+.link > .entry > .tagline,
+.link > .entry > .buttons {
+  display: block;
+  line-height: 1.2rem;
+}
+
+.expando-button {
+  float: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 0 6px 0 0;
+  border-radius: 3px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  color: var(--ina-muted);
+  text-decoration: none;
+}
+
+.expando-button::before {
+  width: 16px;
+  height: 16px;
+}
+
+.expando-button:hover {
+  border-color: var(--ina-muted);
+  text-decoration: none;
+}
+
+.expando-button.image {
+  --icon: url(/static/img/icons/image.svg);
+}
+
+.expando-button.selftext {
+  --icon: url(/static/img/icons/text.svg);
+}
+
+.expando-button.expanded {
+  --icon: url(/static/img/icons/close.svg);
+}
+
+.expando {
+  clear: left;
+  margin: 4px 0;
+}
+
+.entry .expando .usertext-body {
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  max-width: 60em;
+}
+
+.expando .media-preview img.preview {
+  max-width: 100%;
+  max-height: 700px;
+}
+
+/* Sorting and time choices above a listing, and the pages below it. */
+.menuarea {
+  margin: 4px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px dotted var(--ina-border);
+  font-size: 0.9rem;
+}
+
+.menuarea .spacer {
+  display: inline-block;
+  margin: 0 14px 0 0;
+}
+
+.dropdown-title {
+  color: var(--ina-text);
+  margin-right: 4px;
+}
+
+.menuarea .choice {
+  margin-right: 6px;
+}
+
+.menuarea .choice.selected {
+  color: var(--ina-accent);
+  font-weight: bold;
+}
+
+.nav-buttons {
+  margin: 12px 0;
+  color: var(--ina-muted);
+}
+
+.nextprev a {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-border);
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+#noresults,
+.empty {
+  margin: 12px 0;
+  color: var(--ina-muted);
+  font-style: italic;
+}
+
+/* Notices across the top of a thread or page. */
+.infobar,
+.archived-infobar,
+.locked-infobar {
+  margin: 6px 0;
+  padding: 5px 10px;
+  background: var(--ina-notice);
+  border: 1px solid var(--ina-notice-edge);
+  border-radius: 3px;
+}

@@ -1,0 +1,40 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- from "macros/links.html" import pages -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- block content %}
+  <h1>what the innkeepers did</h1>
+  <table class="modactionlisting">
+    <tbody>
+      {%- for action in view.actions %}
+        <tr class="modactions {{ action.action }}">
+          <td class="timestamp">
+            <time datetime="{{ action.created.isoformat() }}">{{ action.created|age(view.now) }}</time>
+          </td>
+          <td>
+            <a href="?mod={{ action.mod_name }}"
+               class="author"
+               title="only their actions">{{ action.mod_name }}</a>
+          </td>
+          <td class="button">
+            <a href="?type={{ action.action }}" title="only this kind">{{ action.action }}</a>
+          </td>
+          <td class="description">
+            {{ action.target or '' }}
+            {%- if action.details %}<span class="details">{{ action.details }}</span>{% endif %}
+          </td>
+        </tr>
+      {%- else %}
+        <tr>
+          <td class="empty">nothing yet</td>
+        </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {{ pages(none, '?after=' ~ view.after if view.after else none) }}
+{%- endblock %}

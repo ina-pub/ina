@@ -1,0 +1,124 @@
+# Every backing service for local development. The app and workers run on the host with uv;
+# Traefik on :80 proxies to the app on :8000. Mailpit catches outgoing mail (web UI on :8025).
+name: ina
+
+services:
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: ina
+      POSTGRES_PASSWORD: ina
+      POSTGRES_DB: ina
+    ports: ["127.0.0.1:15432:5432"]
+    volumes: ["postgres:/var/lib/postgresql"]
+    configs:
+      - source: postgres-init
+        target: /docker-entrypoint-initdb.d/10-test-database.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "ina", "-d", "ina"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7.4.12
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4.4.0-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ina
+      RABBITMQ_DEFAULT_PASS: ina
+    ports: ["127.0.0.1:5672:5672", "127.0.0.1:15672:15672"]
+    volumes: ["rabbitmq:/var/lib/rabbitmq"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      retries: 30
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.7
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    ports: ["127.0.0.1:9200:9200"]
+    volumes: ["opensearch:/usr/share/opensearch/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs localhost:9200/_cluster/health"]
+      interval: 5s
+      retries: 60
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.50
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+    ports: ["127.0.0.1:8333:8333", "127.0.0.1:9333:9333"]
+    volumes: ["seaweedfs:/data"]
+    # Credentials, so requests are signed in development as they are in production.
+    configs:
+      - source: seaweedfs-s3
+        target: /etc/seaweedfs/s3.json
+    healthcheck:
+      # Healthy once S3 answers and a volume server has joined, so the first write can land.
+      test: ["CMD-SHELL", "wget -qO- 127.0.0.1:8333/healthz && wget -qO- 127.0.0.1:9333/dir/status | grep -q DataNodes"]
+      interval: 5s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:v1.33.0
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      retries: 30
+
+  traefik:
+    image: traefik:v3.7.17
+    command:
+      - --providers.file.filename=/etc/traefik/dynamic.yaml
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --ping=true
+    ports: ["127.0.0.1:80:80", "127.0.0.1:8080:8080"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    configs:
+      - source: traefik-dynamic
+        target: /etc/traefik/dynamic.yaml
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 5s
+      retries: 30
+
+configs:
+  seaweedfs-s3:
+    content: |
+      {"identities": [{"name": "ina",
+                       "credentials": [{"accessKey": "ina", "secretKey": "ina-dev-secret"}],
+                       "actions": ["Admin", "Read", "Write", "List", "Tagging"]}]}
+  postgres-init:
+    content: |
+      create database ina_test owner ina;
+  traefik-dynamic:
+    content: |
+      http:
+        routers:
+          app:
+            rule: PathPrefix(`/`)
+            entryPoints: [web]
+            service: app
+        services:
+          app:
+            loadBalancer:
+              servers:
+                - url: http://host.docker.internal:8000
+
+volumes:
+  postgres:
+  rabbitmq:
+  opensearch:
+  seaweedfs:

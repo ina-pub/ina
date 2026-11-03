@@ -1,0 +1,40 @@
+# Formatters and linters come from mise and uv so hooks and CI run the same versions.
+default_stages: [pre-commit]
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types: [python]
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix --force-exclude
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: djlint
+        name: djlint
+        entry: uv run djlint --reformat --lint
+        language: system
+        files: ^app/templates/.*\.html$
+      - id: biome
+        name: biome
+        entry: biome check --write --no-errors-on-unmatched
+        language: system
+        types_or: [javascript, css, json]
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.27.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        # Use mise's node rather than letting pre-commit download one.
+        language_version: system
+        additional_dependencies: ["@commitlint/config-conventional"]

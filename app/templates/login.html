@@ -1,0 +1,94 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, field_class -%}
+{%- block content %}
+  {%- if view.viewer %}
+    <p class="notice">You're logged in as {{ view.viewer.name }}.</p>
+  {%- else %}
+    <div class="auth-forms">
+      <section class="auth-form">
+        <h1>log in</h1>
+        <form id="login-form" method="post" action="/post/login">
+          <input type="hidden" name="op" value="login">
+          <input type="hidden" name="dest" value="{{ view.dest }}">
+          <p class="{{ field_class(view.login_errors, 'user') }}">
+            <label for="user_login">username</label>
+            <input value="{{ view.user }}"
+                   name="user"
+                   id="user_login"
+                   type="text"
+                   maxlength="20"
+                   autocomplete="username"
+                   autofocus>
+          </p>
+          <p class="{{ field_class(view.login_errors, 'passwd') }}">
+            <label for="passwd_login">password</label>
+            <input id="passwd_login"
+                   name="passwd"
+                   type="password"
+                   autocomplete="current-password">
+            {{ error_field(view.login_errors, 'passwd') }}
+          </p>
+          <p class="choice-row">
+            <input type="checkbox" name="rem" id="rem_login">
+            <label for="rem_login">keep me logged in</label>
+          </p>
+          {{ error_field(view.login_errors, 'ratelimit') }}
+          <p class="actions">
+            <button type="submit" class="btn primary">log in</button>
+            <a href="/password">forgot your password?</a>
+          </p>
+        </form>
+      </section>
+      <section class="auth-form">
+        <h1>new here? sign up</h1>
+        <form id="register-form" method="post" action="/post/reg">
+          <input type="hidden" name="op" value="reg">
+          <input type="hidden" name="dest" value="{{ view.dest }}">
+          <p class="{{ field_class(view.reg_errors, 'user') }}">
+            <label for="user_reg">username</label>
+            <input value="{{ view.reg_user }}"
+                   name="user"
+                   id="user_reg"
+                   type="text"
+                   maxlength="20"
+                   autocomplete="username">
+            {{ error_field(view.reg_errors, 'user') }}
+          </p>
+          <p class="{{ field_class(view.reg_errors, 'passwd') }}">
+            <label for="passwd_reg">password</label>
+            <input id="passwd_reg"
+                   name="passwd"
+                   type="password"
+                   autocomplete="new-password">
+            {{ error_field(view.reg_errors, 'passwd') }}
+          </p>
+          <p class="{{ field_class(view.reg_errors, 'passwd2') }}">
+            <label for="passwd2_reg">the same password again</label>
+            <input name="passwd2"
+                   id="passwd2_reg"
+                   type="password"
+                   autocomplete="new-password">
+            {{ error_field(view.reg_errors, 'passwd2') }}
+          </p>
+          <p class="{{ field_class(view.reg_errors, 'email') }}">
+            <label for="email_reg">email <span class="details">(optional, for resetting your password)</span></label>
+            <input value="{{ view.reg_email }}"
+                   name="email"
+                   id="email_reg"
+                   type="email"
+                   autocomplete="email">
+            {{ error_field(view.reg_errors, 'email') }}
+          </p>
+          <p class="choice-row">
+            <input type="checkbox" name="rem" id="rem_reg">
+            <label for="rem_reg">keep me logged in</label>
+          </p>
+          {{ error_field(view.reg_errors, 'ratelimit') }}
+          <p class="actions">
+            <button type="submit" class="btn primary">sign up</button>
+          </p>
+        </form>
+      </section>
+    </div>
+  {%- endif %}
+{%- endblock %}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <title>image</title>
+  <rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.5" fill="none" stroke="#000" stroke-width="1.5"/>
+  <circle cx="5.5" cy="6.25" r="1.4"/>
+  <path d="M2.5 12.5 6.25 8.5l2.5 2.5 2-2 2.75 3.5z"/>
+</svg>

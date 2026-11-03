@@ -1,0 +1,140 @@
+[project]
+name = "ina"
+version = "0.1.0"
+description = "Communities that share links and talk them over"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "alembic>=1.20.1",
+    "argon2-cffi>=25.1.0",
+    "asyncpg>=0.32.0",
+    "dramatiq[rabbitmq]>=2.2.1",
+    "itsdangerous>=2.2.0",
+    "litestar[jinja]>=2.25.0",
+    "nh3>=0.3.7",
+    "pillow>=13.0.0",
+    "pydantic-settings>=2.16.2",
+    "pyyaml>=6.0.3",
+    "redis>=8.1.0",
+    "snudown",
+    "sqlalchemy[asyncio]>=2.1.6",
+    "tinycss2>=1.5.1",
+    "uvicorn>=0.54.0"
+]
+
+
+[project.urls]
+Source = "https://github.com/ina-pub/ina"
+
+[dependency-groups]
+dev = [
+    "djlint>=1.49.2",
+    "httpx>=0.28.1",
+    "mypy>=2.4.1",
+    "openapi-spec-validator>=0.9.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+    "ruff>=0.17.3",
+    "types-pyyaml>=6.0.12.20261030",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+# PyPI's snudown is an empty placeholder; build reddit's from the vendored source.
+snudown = { path = "vendor/snudown" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["various", "vendor"]
+
+[tool.ruff.format]
+quote-style = "single"
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    # The formatter owns trailing commas on split lines; COM819 still flags single-line ones.
+    "COM812",
+    # Conflicts with the formatter.
+    "ISC001",
+    # Docstrings are written where they help, not on every public name.
+    "D1",
+    # Pick one of each conflicting docstring pair: D211 and D212 win.
+    "D203",
+    "D213",
+    # No per-file copyright headers.
+    "CPY001",
+    # Docstrings may say what a function returns rather than command it.
+    "D401",
+    # Handlers take their dependencies as arguments, so argument counts run high.
+    "PLR0913",
+    "PLR0917"
+]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.flake8-type-checking]
+# Litestar reads handler and settings annotations at runtime, so their imports must stay real.
+runtime-evaluated-decorators = [
+    "litestar.get",
+    "litestar.post",
+    "litestar.put",
+    "litestar.patch",
+    "litestar.delete",
+    "litestar.route"
+]
+runtime-evaluated-base-classes = ["pydantic_settings.BaseSettings"]
+
+[tool.ruff.lint.per-file-ignores]
+# Litestar resolves handler and dependency provider signatures at runtime.
+"app/controllers/**" = ["TC001", "TC002", "TC003"]
+"app/main.py" = ["TC001", "TC002", "TC003"]
+# Litestar reads Annotated metadata through TypeAlias, not through PEP 695 `type` aliases.
+"app/controllers/deps.py" = ["UP040"]
+# Records are decoded from the cache by msgspec, which resolves their annotations at runtime.
+"app/repos/base.py" = ["TC003"]
+# Error codes such as WRONG_PASSWORD are names, not secrets.
+"app/errors.py" = ["S105"]
+"tests/**" = ["S101", "S105", "S106", "PLR2004"]
+"migrations/**" = ["INP001"]
+# Stubs keep the library's own argument names.
+"stubs/**" = ["A002"]
+# A revision's docstring starts with its message, which has no closing period.
+"migrations/versions/**" = ["D400", "D415"]
+
+[tool.mypy]
+strict = true
+python_version = "3.13"
+files = ["app", "migrations", "scripts", "tests"]
+plugins = ["pydantic.mypy"]
+mypy_path = "stubs"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+filterwarnings = ["error"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
+[tool.alembic]
+script_location = "%(here)s/migrations"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(rev)s_%%(slug)s"
+prepend_sys_path = ["."]
+
+[tool.djlint]
+profile = "jinja"
+# URLs are reddit's fixed scheme, written out, static ones included; there is no url_for().
+ignore = "J004,J018"
+indent = 2
+max_line_length = 100

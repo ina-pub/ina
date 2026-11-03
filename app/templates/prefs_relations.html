@@ -1,0 +1,56 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, uh -%}
+{%- from "macros/prefs.html" import prefs_tabs -%}
+{%- block content %}
+  {%- set friends = view.kind == "friend" -%}
+  {{ prefs_tabs('friends' if friends else 'blocked') }}
+  <h1>{{ 'your friends' if friends else 'blocked users' }}</h1>
+  <p class="details">
+    {%- if friends %}
+      Your friends' names stand out wherever they post, and <a href="/in/friends/">in/friends</a> lists what they post.
+    {%- else %}
+      Messages, replies and mentions from people you block stay out of your inbox. They aren't told.
+    {%- endif %}
+  </p>
+  <form method="post" action="/api/friend" class="pretty-form add-member">
+    {{ uh(view.viewer) }}
+    <input type="hidden" name="type" value="{{ view.kind }}">
+    <input type="text" name="name" placeholder="username" aria-label="username">
+    {%- if friends %}
+      <input type="text"
+             name="note"
+             maxlength="300"
+             placeholder="note"
+             aria-label="note">
+    {%- endif %}
+    <button type="submit" class="btn">{{ 'add friend' if friends else 'block' }}</button>
+    {{ error_field(view.errors, 'name') }}
+    {{ error_field(view.errors, 'note') }}
+  </form>
+  <table class="member-table">
+    {%- for member in view.members %}
+      <tr>
+        <td>
+          <a href="/user/{{ member.name }}">{{ member.name }}</a>
+        </td>
+        <td>
+          <time datetime="{{ member.created.isoformat() }}">{{ member.created.strftime("%Y-%m-%d") }}</time>
+        </td>
+        {%- if friends %}<td>{{ member.note }}</td>{% endif %}
+        <td>
+          <form method="post" action="/api/unfriend">
+            {{ uh(view.viewer) }}
+            <input type="hidden" name="type" value="{{ view.kind }}">
+            <input type="hidden" name="name" value="{{ member.name }}">
+            <button type="submit"
+                    class="link-button">{{ 'remove' if friends else 'unblock' }}</button>
+          </form>
+        </td>
+      </tr>
+    {%- else %}
+      <tr>
+        <td class="empty">nobody yet</td>
+      </tr>
+    {%- endfor %}
+  </table>
+{%- endblock %}

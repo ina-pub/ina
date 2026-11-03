@@ -1,0 +1,8 @@
+{#- Flair beside a name or a title. The classes are the community's own, for its stylesheet. -#}
+{%- macro author_flair(flair) -%}
+  <span class="flair {{ flair.classes('flair-') }}" title="{{ flair.text }}">{{ flair.text }}</span>
+{%- endmacro -%}
+{%- macro link_flair(flair) -%}
+  {%- if flair.text %}<span class="linkflairlabel"
+                            title="{{ flair.text }}">{{ flair.text }}</span>{% endif -%}
+{%- endmacro -%}

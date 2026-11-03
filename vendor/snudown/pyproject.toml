@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snudown"
+version = "1.7.0"
+description = "reddit's markdown renderer, vendored from reddit/snudown"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+
+[tool.uv]
+# Rebuild when the C sources change, not only this file.
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "setup.py" },
+    { file = "**/*.c" },
+    { file = "**/*.h" }
+]

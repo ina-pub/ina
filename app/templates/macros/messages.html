@@ -1,0 +1,112 @@
+{#- A message, and a comment as it shows in the inbox. Read and unread are small forms; replying
+    to a message goes through its conversation, to a comment through the comment's page. -#}
+{%- from "macros/forms.html" import uh -%}
+{%- macro read_toggle(viewer, fullname, unread, dest) -%}
+  <form method="post"
+        action="/api/{{ 'read' if unread else 'unread' }}_message"
+        class="read-toggle">
+    {{ uh(viewer) }}
+    <input type="hidden" name="id" value="{{ fullname }}">
+    <input type="hidden" name="dest" value="{{ dest }}">
+    <button type="submit"
+            class="link-button">{{ 'mark as read' if unread else 'mark as unread' }}</button>
+  </form>
+{%- endmacro -%}
+{%- macro block_button(viewer, fullname, dest) -%}
+  <details class="confirm-form">
+    <summary>block sender</summary>
+    <form method="post" action="/api/block">
+      {{ uh(viewer) }}
+      <input type="hidden" name="id" value="{{ fullname }}">
+      <input type="hidden" name="dest" value="{{ dest }}">
+      hide everything from them?
+      <button type="submit" class="link-button">block</button>
+    </form>
+  </details>
+{%- endmacro -%}
+{%- macro message(item, viewer, now, dest, show_reply=True) -%}
+  {%- set m = item.message -%}
+  <article class="thing id-{{ m.fullname }} message{% if item.unread %} new{% endif %}"
+           data-fullname="{{ m.fullname }}">
+    <div class="entry">
+      <h3 class="subject">
+        <a href="{{ item.permalink }}" class="title">{{ m.subject }}</a>
+      </h3>
+      <p class="tagline">
+        <span class="author">{{ item.author }}</span>
+        {%- if m.community_name and not m.from_community %} via <a href="/in/{{ m.community_name }}/">in/{{ m.community_name }}</a>{% endif %}
+        → <span class="dest">{{ item.dest }}</span>
+        · <time datetime="{{ m.created.isoformat() }}"
+                class="live-timestamp">{{ m.created|age(now) }}</time>
+      </p>
+      <div class="md">{{ m.body_html|safe }}</div>
+      <ul class="flat-list buttons">
+        <li>
+          <a href="{{ item.permalink }}" class="bylink">link</a>
+        </li>
+        {%- if show_reply %}
+          <li>
+            <a href="{{ item.permalink }}" class="reply-button">reply</a>
+          </li>
+        {%- endif %}
+        {%- if m.to_id and viewer and m.to_name == viewer.name %}
+          <li>{{ read_toggle(viewer, m.fullname, item.unread, dest) }}</li>
+          {%- if not m.from_community and m.from_id != m.to_id %}
+            <li>{{ block_button(viewer, m.fullname, dest) }}</li>
+          {%- endif %}
+        {%- endif %}
+      </ul>
+    </div>
+    <div class="child"></div>
+  </article>
+{%- endmacro -%}
+{%- macro inbox_comment(item, viewer, now, dest) -%}
+  {%- set c = item.comment -%}
+  <article class="thing id-{{ c.fullname }} message was-comment{% if item.unread %} new{% endif %}"
+           data-fullname="{{ c.fullname }}">
+    <div class="entry">
+      <h3 class="subject">
+        {{ item.subject }} on <a href="{{ item.context }}" class="title">{{ item.link.title }}</a>
+      </h3>
+      <p class="tagline">
+        <a href="/user/{{ c.author_name }}" class="author">{{ c.author_name }}</a>
+        in <a href="/in/{{ c.community_name }}/">in/{{ c.community_name }}</a>
+        · <time datetime="{{ c.created.isoformat() }}"
+                class="live-timestamp">{{ c.created|age(now) }}</time>
+      </p>
+      <div class="md">{{ c.body_html|safe }}</div>
+      <ul class="flat-list buttons">
+        <li>
+          <a href="{{ item.context }}" class="bylink">in context</a>
+        </li>
+        <li>
+          <a href="{{ item.permalink }}" class="bylink">whole thread</a>
+        </li>
+        <li>
+          <a href="{{ item.permalink }}" class="reply-button">reply</a>
+        </li>
+        <li>{{ read_toggle(viewer, c.fullname, item.unread, dest) }}</li>
+        <li>{{ block_button(viewer, c.fullname, dest) }}</li>
+      </ul>
+    </div>
+    <div class="child"></div>
+  </article>
+{%- endmacro -%}
+{%- macro mail_tabs(view, here) -%}
+  <ul class="tabmenu">
+    <li {% if here == 'inbox' %}class="selected"{% endif %}>
+      <a href="/message/inbox/" class="choice">inbox</a>
+    </li>
+    <li {% if here == 'sent' %}class="selected"{% endif %}>
+      <a href="/message/sent/" class="choice">sent</a>
+    </li>
+    {%- if view.viewer and view.viewer.is_moderator %}
+      <li {% if here == 'moderator' %}class="selected"{% endif %}>
+        <a href="/message/moderator/" class="choice">modmail</a>
+      </li>
+    {%- endif %}
+    <li {% if here == 'compose' %}class="selected"{% endif %}>
+      <a href="/message/compose/" class="choice">write a message</a>
+    </li>
+  </ul>
+{%- endmacro -%}

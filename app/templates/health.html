@@ -1,0 +1,9 @@
+{%- extends "base.html" -%}
+{%- block content %}
+  <h1>{{ "ok" if view.ok else "degraded" }}</h1>
+  <ul class="health-checks">
+    {%- for check in view.checks %}
+      <li class="{{ 'ok' if check.ok else 'failed' }}">{{ check.name }}: {{ "ok" if check.ok else "failing" }}</li>
+    {%- endfor %}
+  </ul>
+{%- endblock %}

@@ -1,0 +1,185 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, field_class, uh -%}
+{%- set TYPES = {
+  "public": "public: anyone can see and post",
+  "restricted": "restricted: anyone can see, approved posters can post",
+  "private": "private: only approved posters can see and post"
+} -%}
+{%- set LINK_TYPES = {"any": "links and text posts", "link": "links only", "self": "text posts only"} -%}
+{%- set WIKI_MODES = {
+  "disabled": "off",
+  "modonly": "innkeepers edit it",
+  "anyone": "anyone who qualifies edits it"
+} -%}
+{%- macro checkbox(name, text) -%}
+  <p class="choice-row">
+    <input type="checkbox"
+           name="{{ name }}"
+           id="{{ name }}"
+           {% if view.form[name] %}checked{% endif %}>
+    <label for="{{ name }}">{{ text }}</label>
+  </p>
+{%- endmacro -%}
+{%- macro radios(name, values, labels) -%}
+  {%- for value in values %}
+    <p class="choice-row">
+      <input type="radio"
+             name="{{ name }}"
+             id="{{ name }}_{{ value }}"
+             value="{{ value }}"
+             {% if view.form[name] == value %}checked{% endif %}>
+      <label for="{{ name }}_{{ value }}">{{ labels.get(value, value) }}</label>
+    </p>
+  {%- endfor %}
+  {{ error_field(view.errors, name) }}
+{%- endmacro -%}
+{%- macro text_area(name, label, note, rows) -%}
+  <p class="{{ field_class(view.errors, name) }}">
+    <label for="{{ name }}">{{ label }} <span class="details">{{ note }}</span></label>
+    <textarea name="{{ name }}" id="{{ name }}" rows="{{ rows }}">{{ view.form[name] }}</textarea>
+    {{ error_field(view.errors, name) }}
+  </p>
+{%- endmacro -%}
+{%- block content %}
+  <h1>{{ 'settings for in/' ~ view.community.name if view.community else 'start a community' }}</h1>
+  {%- if view.done %}<p class="notice">Saved.</p>{% endif %}
+  {{ error_field(view.errors, '') }}
+  <form method="post"
+        action="/api/site_admin"
+        id="community-form"
+        class="settings">
+    {{ uh(view.viewer) }}
+    {%- if view.community %}
+      <input type="hidden" name="community" value="{{ view.community.fullname }}">
+      <input type="hidden" name="name" value="{{ view.community.name }}">
+    {%- endif %}
+    <fieldset>
+      <legend>about it</legend>
+      {%- if not view.community %}
+        <p class="{{ field_class(view.errors, 'name') }}">
+          <label for="name">name <span class="details">3 to 21 letters, digits or underscores; it can't change later</span></label>
+          <input type="text"
+                 name="name"
+                 id="name"
+                 value="{{ view.form.name }}"
+                 maxlength="21">
+          {{ error_field(view.errors, 'name') }}
+          {{ error_field(view.errors, 'ratelimit') }}
+        </p>
+      {%- endif %}
+      <p class="{{ field_class(view.errors, 'title') }}">
+        <label for="title">title <span class="details">a line saying what it's about</span></label>
+        <input type="text"
+               name="title"
+               id="title"
+               value="{{ view.form.title }}"
+               maxlength="100">
+        {{ error_field(view.errors, 'title') }}
+      </p>
+      {{ text_area('public_description', 'short description', 'shown in search, and to people it is closed to; up to 500 characters', 3) }}
+      {{ text_area('description', 'sidebar', 'markdown, up to 5,120 characters', 12) }}
+      {{ text_area('submit_text', 'guidance for posters', 'shown above the post form; markdown, up to 1,024 characters', 4) }}
+    </fieldset>
+    <fieldset>
+      <legend>who can take part</legend>
+      {{ radios('type', view.types, TYPES) }}
+      {{ checkbox('over_18', 'adults only: visitors confirm they are over eighteen') }}
+    </fieldset>
+    <fieldset>
+      <legend>posts</legend>
+      {{ radios('link_type', view.link_types, LINK_TYPES) }}
+      <p class="{{ field_class(view.errors, 'submit_link_label') }}">
+        <label for="submit_link_label">name for link posts <span class="details">instead of "a link"</span></label>
+        <input type="text"
+               name="submit_link_label"
+               id="submit_link_label"
+               value="{{ view.form.submit_link_label }}"
+               maxlength="60">
+        {{ error_field(view.errors, 'submit_link_label') }}
+      </p>
+      <p class="{{ field_class(view.errors, 'submit_text_label') }}">
+        <label for="submit_text_label">name for text posts <span class="details">instead of "some text"</span></label>
+        <input type="text"
+               name="submit_text_label"
+               id="submit_text_label"
+               value="{{ view.form.submit_text_label }}"
+               maxlength="60">
+        {{ error_field(view.errors, 'submit_text_label') }}
+      </p>
+    </fieldset>
+    <fieldset>
+      <legend>display</legend>
+      {{ checkbox('allow_top', 'list it on in/all and among the defaults') }}
+      {{ checkbox('show_media', 'show thumbnails') }}
+      {{ checkbox('show_media_preview', 'open image previews on thread pages') }}
+      {{ checkbox('collapse_deleted_comments', 'fold deleted and removed comments') }}
+      {{ checkbox('exclude_banned_modqueue', 'keep site-banned accounts out of the review queues') }}
+      {{ checkbox('public_traffic', 'let anyone see the traffic page') }}
+      <p class="choice-row">
+        <label for="comment_score_hide_mins">hide new comments' scores for</label>
+        <input type="number"
+               name="comment_score_hide_mins"
+               id="comment_score_hide_mins"
+               class="short"
+               min="0"
+               max="1440"
+               value="{{ view.form.comment_score_hide_mins }}">
+        minutes
+        {{ error_field(view.errors, 'comment_score_hide_mins') }}
+      </p>
+      <p class="choice-row">
+        <label for="suggested_comment_sort">suggest ordering comments by</label>
+        <select name="suggested_comment_sort" id="suggested_comment_sort">
+          <option value="">each reader's own choice</option>
+          {%- for value, label in view.comment_sorts %}
+            <option value="{{ value }}"
+                    {% if view.form.suggested_comment_sort == value %}selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </p>
+    </fieldset>
+    <fieldset>
+      <legend>spam filter</legend>
+      {%- for name, label in (('spam_links', 'links'), ('spam_selfposts', 'text posts'), ('spam_comments', 'comments')) %}
+        <p class="choice-row">
+          <label for="{{ name }}">how strict on {{ label }}</label>
+          <select name="{{ name }}" id="{{ name }}">
+            {%- for level in view.spam_levels %}
+              <option value="{{ level }}"
+                      {% if view.form[name] == level %}selected{% endif %}>{{ level }}</option>
+            {%- endfor %}
+          </select>
+          {{ error_field(view.errors, name) }}
+        </p>
+      {%- endfor %}
+    </fieldset>
+    <fieldset>
+      <legend>wiki</legend>
+      {{ radios('wikimode', view.wiki_modes, WIKI_MODES) }}
+      <p class="choice-row">
+        <label for="wiki_edit_karma">editors need at least</label>
+        <input type="number"
+               name="wiki_edit_karma"
+               id="wiki_edit_karma"
+               class="short"
+               value="{{ view.form.wiki_edit_karma }}">
+        karma here
+        {{ error_field(view.errors, 'wiki_edit_karma') }}
+      </p>
+      <p class="choice-row">
+        <label for="wiki_edit_age">and accounts at least</label>
+        <input type="number"
+               name="wiki_edit_age"
+               id="wiki_edit_age"
+               class="short"
+               value="{{ view.form.wiki_edit_age }}">
+        days old
+        {{ error_field(view.errors, 'wiki_edit_age') }}
+      </p>
+    </fieldset>
+    <p class="actions">
+      <button type="submit"
+              class="btn primary">{{ 'save' if view.community else 'start it' }}</button>
+    </p>
+  </form>
+{%- endblock %}

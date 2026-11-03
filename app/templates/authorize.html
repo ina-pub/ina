@@ -1,0 +1,46 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import uh -%}
+{%- block content %}
+  <section class="authorize">
+    {%- if view.problem %}
+      <h1>this app can't be let in</h1>
+      <p class="error">{{ view.problem }}.</p>
+      <p class="details">Whoever made the app needs to fix this; there's nothing for you to do.</p>
+    {%- else %}
+      {%- set app = view.client %}
+      <h1>
+        {%- if app.about_url %}
+          <a href="{{ app.about_url }}" rel="nofollow">{{ app.name }}</a>
+        {%- else %}
+          {{ app.name }}
+        {%- endif %}
+        wants to use your account
+      </h1>
+      {%- if app.description %}<p class="app-description">{{ app.description }}</p>{% endif %}
+      <p>If you allow it, it may:</p>
+      <ul class="scopes">
+        {%- for scope in view.scopes %}
+          <li class="scope-{{ scope.id }}">
+            <strong>{{ scope.name }}</strong>: {{ scope.description }}
+          </li>
+        {%- endfor %}
+      </ul>
+      <p class="details">
+        {%- if view.permanent %}
+          It keeps this access until you take it back on <a href="/prefs/apps/">your apps page</a>.
+        {%- else %}
+          This access lasts an hour.
+        {%- endif %}
+        It never sees your password.
+      </p>
+      <form method="post" action="/api/v1/authorize" class="authorize-form">
+        {{ uh(view.viewer) }}
+        {%- for name, value in view.params.items() %}
+          <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+        <button type="submit" name="authorize" value="yes" class="btn">allow</button>
+        <button type="submit" name="authorize" value="no" class="btn">decline</button>
+      </form>
+    {%- endif %}
+  </section>
+{%- endblock %}

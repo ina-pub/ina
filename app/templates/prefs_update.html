@@ -1,0 +1,68 @@
+{%- extends "base.html" -%}
+{%- from "macros/prefs.html" import prefs_tabs -%}
+{%- from "macros/forms.html" import error_field, field_class, uh -%}
+{%- block content %}
+  {{ prefs_tabs("account") }}
+  {%- if view.done == "password" %}
+    <p class="notice">Your password is changed.</p>
+  {%- elif view.done == "email" %}
+    <p class="notice">Your email address is changed.</p>
+  {%- endif %}
+  <section class="settings-section">
+    <h2>email address</h2>
+    <form action="/api/update_email" method="post" id="pref-update-email">
+      {{ uh(view.viewer) }}
+      <p class="{{ field_class(view.errors, 'email') }}">
+        <label for="email">
+          email
+          {%- if view.email and not view.email_verified %} <span class="details">(not yet confirmed)</span>{% endif %}
+        </label>
+        <input type="email" name="email" id="email" value="{{ view.email or '' }}">
+        {{ error_field(view.errors, 'email') }}
+      </p>
+      <p class="field">
+        <label for="email_curpass">your password, to confirm</label>
+        <input type="password"
+               name="curpass"
+               id="email_curpass"
+               autocomplete="current-password">
+      </p>
+      <p class="actions">
+        <button type="submit" class="btn primary">change email</button>
+      </p>
+    </form>
+  </section>
+  <section class="settings-section">
+    <h2>password</h2>
+    <form action="/api/update_password" method="post" id="pref-update-password">
+      {{ uh(view.viewer) }}
+      <p class="{{ field_class(view.errors, 'curpass') }}">
+        <label for="curpass">current password</label>
+        <input type="password"
+               name="curpass"
+               id="curpass"
+               autocomplete="current-password">
+        {{ error_field(view.errors, 'curpass') }}
+      </p>
+      <p class="{{ field_class(view.errors, 'newpass') }}">
+        <label for="newpass">new password</label>
+        <input type="password"
+               name="newpass"
+               id="newpass"
+               autocomplete="new-password">
+        {{ error_field(view.errors, 'newpass') }}
+      </p>
+      <p class="{{ field_class(view.errors, 'verpass') }}">
+        <label for="verpass">the new password again</label>
+        <input type="password"
+               name="verpass"
+               id="verpass"
+               autocomplete="new-password">
+        {{ error_field(view.errors, 'verpass') }}
+      </p>
+      <p class="actions">
+        <button type="submit" class="btn primary">change password</button>
+      </p>
+    </form>
+  </section>
+{%- endblock %}

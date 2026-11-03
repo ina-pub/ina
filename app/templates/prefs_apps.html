@@ -1,0 +1,147 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import error_field, field_class, uh -%}
+{%- from "macros/prefs.html" import prefs_tabs -%}
+{%- macro app_fields(app=none) -%}
+  {%- set errors = view.errors if view.editing == (app.id if app else '') else () -%}
+  {%- set key = app.id if app else 'new' -%}
+  <p class="{{ field_class(errors, 'name') }}">
+    <label for="name-{{ key }}">name</label>
+    <input type="text"
+           name="name"
+           id="name-{{ key }}"
+           maxlength="100"
+           value="{{ app.name if app else '' }}">
+    {{ error_field(errors, 'name') }}
+  </p>
+  {%- if not app %}
+    <fieldset class="{{ field_class(errors, 'app_type') }}">
+      <legend>kind</legend>
+      {%- for value, label in view.kinds %}
+        <input type="radio"
+               name="app_type"
+               id="app_type-{{ value }}"
+               value="{{ value }}"
+               {% if loop.first %}checked{% endif %}>
+        <label for="app_type-{{ value }}">{{ label }}</label>
+        <br>
+      {%- endfor %}
+      {{ error_field(errors, 'app_type') }}
+    </fieldset>
+  {%- endif %}
+  <p class="{{ field_class(errors, 'description') }}">
+    <label for="description-{{ key }}">what it does</label>
+    <textarea name="description"
+              id="description-{{ key }}"
+              rows="2"
+              maxlength="500">{{ app.description if app else '' }}</textarea>
+    {{ error_field(errors, 'description') }}
+  </p>
+  <p class="{{ field_class(errors, 'about_url') }}">
+    <label for="about_url-{{ key }}">its web page</label>
+    <input type="url"
+           name="about_url"
+           id="about_url-{{ key }}"
+           value="{{ app.about_url if app else '' }}">
+    {{ error_field(errors, 'about_url') }}
+  </p>
+  <p class="{{ field_class(errors, 'redirect_uri') }}">
+    <label for="redirect_uri-{{ key }}">redirect uri</label>
+    <input type="text"
+           name="redirect_uri"
+           id="redirect_uri-{{ key }}"
+           value="{{ app.redirect_uri if app else '' }}">
+    <span class="details">where people go once they've answered; plain http only for localhost</span>
+    {{ error_field(errors, 'redirect_uri') }}
+  </p>
+{%- endmacro -%}
+{%- block content %}
+  {{ prefs_tabs("apps") }}
+  {%- if view.secret %}
+    <p class="notice">
+      The secret for <code>{{ view.secret[0] }}</code> is <code class="app-secret">{{ view.secret[1] }}</code>.
+      Copy it now: it won't be shown again.
+    </p>
+  {%- endif %}
+  <section class="settings-section">
+    <h2>apps you've let in</h2>
+    <ul class="app-list authorized">
+      {%- for grant in view.authorized %}
+        <li class="app">
+          <h3>
+            {%- if grant.client.about_url %}
+              <a href="{{ grant.client.about_url }}" rel="nofollow">{{ grant.client.name }}</a>
+            {%- else %}
+              {{ grant.client.name }}
+            {%- endif %}
+          </h3>
+          {%- if grant.client.description %}<p>{{ grant.client.description }}</p>{% endif %}
+          <p class="details">
+            since <time datetime="{{ grant.since.isoformat() }}">{{ grant.since.strftime("%Y-%m-%d") }}</time>, it may:
+          </p>
+          <ul class="scopes">
+            {%- for scope in view.scopes(grant.scopes) %}<li title="{{ scope.description }}">{{ scope.name }}</li>{% endfor %}
+          </ul>
+          <form method="post" action="/api/revokeapp">
+            {{ uh(view.viewer) }}
+            <input type="hidden" name="client_id" value="{{ grant.client.id }}">
+            <button type="submit" class="link-button">take back its access</button>
+          </form>
+        </li>
+      {%- else %}
+        <li class="empty">none yet</li>
+      {%- endfor %}
+    </ul>
+  </section>
+  <section class="settings-section">
+    <h2>apps you've made</h2>
+    <p class="details">
+      An app signs in to <a href="/dev/api">the API</a> with OAuth2, using its client id.
+    </p>
+    <ul class="app-list developed">
+      {%- for app in view.apps %}
+        <li class="app" id="app-{{ app.id }}">
+          <h3>{{ app.name }}</h3>
+          <dl>
+            <dt>client id</dt>
+            <dd>
+              <code>{{ app.id }}</code>
+            </dd>
+            <dt>kind</dt>
+            <dd>
+              {{ app.kind.value }}
+            </dd>
+          </dl>
+          <details {% if view.editing == app.id %}open{% endif %}>
+            <summary>change</summary>
+            <form method="post" action="/api/updateapp" class="pretty-form">
+              {{ uh(view.viewer) }}
+              <input type="hidden" name="client_id" value="{{ app.id }}">
+              {{ app_fields(app) }}
+              <button type="submit" class="btn">save</button>
+            </form>
+          </details>
+          {%- if app.kind.value != "installed" %}
+            <form method="post" action="/api/new_app_secret">
+              {{ uh(view.viewer) }}
+              <input type="hidden" name="client_id" value="{{ app.id }}">
+              <button type="submit" class="link-button">make a new secret</button>
+            </form>
+          {%- endif %}
+          <form method="post" action="/api/deleteapp">
+            {{ uh(view.viewer) }}
+            <input type="hidden" name="client_id" value="{{ app.id }}">
+            <button type="submit" class="link-button">delete</button>
+          </form>
+        </li>
+      {%- endfor %}
+    </ul>
+    <details {% if view.editing == '' %}open{% endif %}>
+      <summary>make an app</summary>
+      <form method="post" action="/api/updateapp" class="pretty-form">
+        {{ uh(view.viewer) }}
+        {{ app_fields() }}
+        <button type="submit" class="btn">make it</button>
+      </form>
+    </details>
+  </section>
+{%- endblock %}

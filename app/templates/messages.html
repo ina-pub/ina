@@ -1,0 +1,39 @@
+{%- extends "base.html" -%}
+{%- from "macros/messages.html" import inbox_comment, mail_tabs, message -%}
+{%- from "macros/comments.html" import reply_form -%}
+{%- from "macros/links.html" import pages -%}
+{%- from "macros/forms.html" import uh -%}
+{%- block tabs %}
+  {{ mail_tabs(view, view.box.value if view.box.value in ('sent', 'moderator') else 'inbox') }}
+{%- endblock %}
+{%- block content %}
+  {%- if view.box.value not in ("sent", "moderator") %}
+    <div class="menuarea inbox-tabs">
+      <span class="dropdown-title">show</span>
+      {%- for box, label in view.tabs %}
+        <a href="/message/{{ box.value }}/"
+           class="choice{% if view.box == box %} selected{% endif %}">{{ label }}</a>
+      {%- endfor %}
+      <form method="post" action="/api/read_all_messages" class="read-all">
+        {{ uh(view.viewer) }}
+        <input type="hidden" name="dest" value="{{ request.url.path }}">
+        <button type="submit" class="link-button">mark everything read</button>
+      </form>
+    </div>
+  {%- endif %}
+  <div id="siteTable" class="sitetable message-list">
+    {%- for item in view.items %}
+      {%- if item.message is defined %}
+        {{ message(item, view.viewer, view.now, request.url.path) }}
+      {%- else %}
+        {{ inbox_comment(item, view.viewer, view.now, request.url.path) }}
+      {%- endif %}
+    {%- else %}
+      <p id="noresults" class="empty">nothing here yet</p>
+    {%- endfor %}
+  </div>
+  {{ pages(none, '?after=' ~ view.after if view.after else none) }}
+  <template id="reply-template">
+    {{ reply_form(view.viewer, '') }}
+  </template>
+{%- endblock %}

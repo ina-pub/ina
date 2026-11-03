@@ -1,0 +1,89 @@
+{#- Moderators' buttons and the report box. Each is a small form, so none needs JS. -#}
+{%- from "macros/forms.html" import uh -%}
+{%- macro action(viewer, path, fullname, dest, label, fields={}) -%}
+  <form method="post" action="{{ path }}" class="mod-action">
+    {{ uh(viewer) }}
+    <input type="hidden" name="id" value="{{ fullname }}">
+    <input type="hidden" name="dest" value="{{ dest }}">
+    {%- for name, value in fields.items() %}
+      <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <button type="submit" class="link-button">{{ label }}</button>
+  </form>
+{%- endmacro -%}
+{#- ``thing`` is a link or a comment; ``is_link`` says which. -#}
+{%- macro mod_buttons(viewer, thing, dest, is_link=False) -%}
+  {%- set name = thing.fullname -%}
+  {#- What the site's admins removed, only they can put back. -#}
+  {%- set held = thing.removed_by == 'admin' and not viewer.admin_mode -%}
+  {%- if thing.removed_by == "admin" %}
+    <li class="removed-mark">removed by an admin</li>
+  {%- elif thing.removed or thing.spam %}
+    <li class="removed-mark">{{ 'spam' if thing.spam else 'removed' }}</li>
+  {%- elif thing.approved_by %}
+    <li class="approved-mark">approved</li>
+  {%- endif %}
+  {%- if not thing.removed %}
+    <li>{{ action(viewer, '/api/remove', name, dest, 'remove', {'spam': 'false'}) }}</li>
+    <li>{{ action(viewer, '/api/remove', name, dest, 'spam', {'spam': 'true'}) }}</li>
+  {%- endif %}
+  {%- if not held and (thing.removed or thing.spam or not thing.approved_by) %}
+    <li>{{ action(viewer, '/api/approve', name, dest, 'approve') }}</li>
+  {%- endif %}
+  {%- if thing.reported %}
+    <li>
+      {%- if thing.ignore_reports %}
+        {{ action(viewer, '/api/unignore_reports', name, dest, 'listen to reports') }}
+      {%- else %}
+        {{ action(viewer, '/api/ignore_reports', name, dest, 'ignore reports') }}
+      {%- endif %}
+    </li>
+  {%- endif %}
+  {%- if is_link %}
+    <li>{{ action(viewer, '/api/set_community_sticky', name, dest, 'unpin' if thing.stickied else 'pin', {'state': 'false' if thing.stickied else 'true'}) }}</li>
+    <li>{{ action(viewer, '/api/unlock' if thing.locked else '/api/lock', name, dest, 'unlock' if thing.locked else 'lock') }}</li>
+    {{ nsfw_button(viewer, thing, dest) }}
+  {%- endif %}
+  {%- if thing.author_id is defined and viewer and thing.author_name == viewer.name %}
+    {%- if thing.distinguished %}
+      <li>{{ action(viewer, '/api/distinguish', name, dest, 'stop speaking as ' ~ ('admin' if thing.distinguished == 'admin' else 'innkeeper'), {'how': 'no'}) }}</li>
+    {%- elif viewer.admin_mode %}
+      <li>{{ action(viewer, '/api/distinguish', name, dest, 'speak as admin', {'how': 'admin'}) }}</li>
+    {%- else %}
+      <li>{{ action(viewer, '/api/distinguish', name, dest, 'speak as innkeeper', {'how': 'yes'}) }}</li>
+    {%- endif %}
+  {%- endif %}
+{%- endmacro -%}
+{#- A link's NSFW mark, for its author and its innkeepers. -#}
+{%- macro nsfw_button(viewer, link, dest) -%}
+  <li>{{ action(viewer, '/api/unmarknsfw' if link.nsfw else '/api/marknsfw', link.fullname, dest, 'un-nsfw' if link.nsfw else 'nsfw') }}</li>
+{%- endmacro -%}
+{%- macro report(viewer, fullname, dest) -%}
+  {%- if viewer %}
+    <li>
+      <details class="report-form">
+        <summary>report</summary>
+        <form method="post" action="/api/report">
+          {{ uh(viewer) }}
+          <input type="hidden" name="thing_id" value="{{ fullname }}">
+          <input type="hidden" name="dest" value="{{ dest }}">
+          <input type="text"
+                 name="reason"
+                 maxlength="100"
+                 placeholder="what's wrong?"
+                 aria-label="what's wrong?">
+          <button type="submit" class="link-button">send</button>
+        </form>
+      </details>
+    </li>
+  {%- endif %}
+{%- endmacro -%}
+{%- macro reports(reasons) -%}
+  {%- if reasons %}
+    <ul class="report-reasons">
+      {%- for reason in reasons %}
+        <li>{{ reason or 'no reason given' }}</li>
+      {%- endfor %}
+    </ul>
+  {%- endif %}
+{%- endmacro -%}

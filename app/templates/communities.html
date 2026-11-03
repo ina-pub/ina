@@ -1,0 +1,60 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import subscribe_button -%}
+{%- from "macros/links.html" import pages -%}
+{%- block pagename %}
+  <a href="/ins/" class="pagename">communities</a>
+{%- endblock %}
+{%- block tabs %}
+  <ul class="tabmenu">
+    {%- for where, label in view.tabs %}
+      <li {% if view.where == where %}class="selected"{% endif %}>
+        <a href="/ins/{{ where }}/" class="choice">{{ label }}</a>
+      </li>
+    {%- endfor %}
+    {%- if view.viewer %}
+      {%- for where, label in view.mine_tabs %}
+        <li {% if view.where == where %}class="selected"{% endif %}>
+          <a href="/ins/{{ where }}/" class="choice">{{ label }}</a>
+        </li>
+      {%- endfor %}
+    {%- endif %}
+  </ul>
+{%- endblock %}
+{%- block content %}
+  <form action="/ins/search"
+        method="get"
+        class="search-form community-search">
+    <input type="text"
+           name="q"
+           value="{{ view.query }}"
+           placeholder="a community's name"
+           aria-label="a community's name">
+    <button type="submit" class="btn">find</button>
+  </form>
+  {%- if view.unavailable %}<p class="error">{{ view.unavailable_message }}</p>{% endif %}
+  <div id="siteTable" class="sitetable communities">
+    {%- for row in view.rows %}
+      {%- set community = row.community %}
+      <article class="thing community" data-fullname="{{ community.fullname }}">
+        <div class="entry">
+          <h2 class="titlerow">
+            <a href="{{ community.path }}" class="title">in/{{ community.name }}</a>
+            {%- if community.title %}<span class="subtitle">{{ community.title }}</span>{% endif %}
+          </h2>
+          <div class="tagline">
+            {{ subscribe_button(view.viewer, community, row.is_subscriber, request.url.path) }}
+            <span class="score unvoted"><span class="number">{{ community.subscriber_count }}</span> <span class="word">{{ 'member' if community.subscriber_count == 1 else 'members' }}</span></span>
+            · started
+            <time datetime="{{ community.created.isoformat() }}">{{ community.created.strftime("%B %-d, %Y") }}</time>
+          </div>
+          <div class="description">
+            <div class="md">{{ community.description_html|safe }}</div>
+          </div>
+        </div>
+      </article>
+    {%- else %}
+      <p id="noresults" class="empty">no communities here yet</p>
+    {%- endfor %}
+  </div>
+  {{ pages(none, view.next_query) }}
+{%- endblock %}

@@ -1,0 +1,42 @@
+{%- extends "base.html" -%}
+{%- block content %}
+  <section class="api-reference md">
+    <h1>the API</h1>
+    <p>
+      Everything here answers in JSON. A <code>Listing</code> holds things, each a kind (<code>t1</code> comment,
+      <code>t2</code> account, <code>t3</code> link, <code>t4</code> message, <code>t5</code> community)
+      with its <code>data</code>; ids are fullnames such as <code>t3_1z</code>, and a listing pages with
+      <code>after</code> and <code>before</code>.
+    </p>
+    <p>
+      Apps sign in with OAuth2: register one on <a href="/prefs/apps/">your apps page</a>, send people
+      to <code>/api/v1/authorize</code>, and trade the code at <code>/api/v1/access_token</code>.
+      Installed apps use PKCE. Send the token as <code>Authorization: Bearer …</code>; no modhash is
+      needed. An app may make 60 requests a minute for each account it acts for, and the
+      <code>X-Ratelimit-*</code> headers say where it stands.
+    </p>
+    <p>
+      The same, for tools: <a href="/dev/api/openapi">the OpenAPI document</a>.
+    </p>
+    {%- for scope, endpoints in view.by_scope %}
+      <h2 id="scope-{{ scope.id }}">{{ scope.id }}</h2>
+      <p class="details">{{ scope.description }}</p>
+      <table class="api-endpoints">
+        {%- for endpoint in endpoints %}
+          <tr>
+            <td class="method">{{ endpoint.method }}</td>
+            <td>
+              <code>{{ endpoint.path }}</code>
+            </td>
+            <td>
+              {{ endpoint.summary }}
+              {%- if endpoint.scopes|length > 1 %}
+                <span class="details">(needs {{ endpoint.scopes|join(" or ") }}, by what it's asked)</span>
+              {%- endif %}
+            </td>
+          </tr>
+        {%- endfor %}
+      </table>
+    {%- endfor %}
+  </section>
+{%- endblock %}

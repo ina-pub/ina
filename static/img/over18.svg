@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="over 18">
+  <title>over 18</title>
+  <circle cx="75" cy="75" r="72" fill="#c92a2a"/>
+  <circle cx="75" cy="75" r="62" fill="none" stroke="#fff" stroke-width="3" opacity="0.5"/>
+  <text x="75" y="92" text-anchor="middle" font-family="Georgia, serif" font-size="50" font-weight="bold" fill="#fff">18+</text>
+</svg>

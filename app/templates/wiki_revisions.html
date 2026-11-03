@@ -1,0 +1,67 @@
+{#- A page's history, or the whole wiki's recent edits. Comparing two is a plain GET. -#}
+{%- extends "wiki_page.html" -%}
+{%- from "macros/forms.html" import uh -%}
+{%- from "macros/links.html" import pages -%}
+{%- block wikititle %}{{ 'history of ' ~ view.page if view.page else 'recent edits' }}{% endblock %}
+{%- macro revision_action(path, label, revision) -%}
+  <form method="post"
+        action="{{ view.community.path }}api/wiki/{{ path }}"
+        class="inline">
+    {{ uh(view.viewer) }}
+    <input type="hidden" name="page" value="{{ revision.page_name }}">
+    <input type="hidden" name="revision" value="{{ revision.id }}">
+    <button type="submit" class="link-button">{{ label }}</button>
+  </form>
+{%- endmacro -%}
+{%- block wiki %}
+  <form method="get" action="{{ view.base_url }}/{{ view.page or '' }}">
+    <table class="generic-table wiki-revisions">
+      <tbody>
+        {%- for revision in view.revisions %}
+          <tr class="revision{% if revision.hidden %} hidden{% endif %}">
+            {%- if view.page %}
+              <td>
+                <input type="radio"
+                       name="v"
+                       value="{{ revision.id }}"
+                       aria-label="compare from this">
+                <input type="radio"
+                       name="v2"
+                       value="{{ revision.id }}"
+                       aria-label="compare to this">
+              </td>
+            {%- endif %}
+            <td>
+              <a href="{{ view.base_url }}/{{ revision.page_name }}?v={{ revision.id }}"><time datetime="{{ revision.created.isoformat() }}">{{ revision.created|age(view.now) }}</time></a>
+            </td>
+            {%- if not view.page %}
+              <td>
+                <a href="{{ view.base_url }}/{{ revision.page_name }}">{{ revision.page_name }}</a>
+              </td>
+            {%- endif %}
+            <td>
+              {%- if revision.author_name %}
+                <a href="/user/{{ revision.author_name }}"
+                   class="author">{{ revision.author_name }}</a>
+              {%- else %}
+                [deleted]
+              {%- endif %}
+            </td>
+            <td class="reason">{{ revision.reason }}</td>
+            {%- if view.extended %}
+              <td>{{ revision_action('hide', 'show' if revision.hidden else 'hide', revision) }}</td>
+              <td class="wiki_revert">{{ revision_action('revert', 'go back to this', revision) }}</td>
+            {%- endif %}
+          </tr>
+        {%- else %}
+          <tr>
+            <td class="empty">no edits yet</td>
+          </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {%- if view.page and view.revisions %}<button type="submit"
+                                                  class="btn">compare the two picked</button>{% endif %}
+  </form>
+  {{ pages(none, '?after=' ~ view.after if view.after else none) }}
+{%- endblock %}

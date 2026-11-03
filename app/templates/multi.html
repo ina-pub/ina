@@ -1,0 +1,104 @@
+{#- A multi: several communities' links in one listing, and beside it what it holds and,
+    for its owner, the forms to change it. -#}
+{%- extends "base.html" -%}
+{%- from "macros/links.html" import listing, sort_tabs with context -%}
+{%- from "macros/forms.html" import uh -%}
+{%- from "macros/search.html" import search_box -%}
+{%- block pagename %}
+  <a href="{{ view.multi.path if view.multi else '/in/' ~ view.names|join('+') ~ '/' }}"
+     class="pagename community-name">{{ view.title }}</a>
+{%- endblock %}
+{%- block tabs %}
+  {{ sort_tabs(view.listing) }}
+{%- endblock %}
+{%- macro edit_form(action, button) -%}
+  <form method="post" action="{{ view.multi.path }}/edit" class="multi-edit">
+    {{ uh(view.viewer) }}
+    <input type="hidden" name="action" value="{{ action }}">
+    {{ caller() }}
+    <button type="submit"
+            class="{{ 'link-button' if action in ('remove', 'delete') else 'btn' }}">{{ button }}</button>
+  </form>
+{%- endmacro -%}
+{%- block side %}
+  <aside class="side">
+    {{ search_box() }}
+    <section class="spacer">
+      <div class="titlebox multi-details">
+        <h1 class="community-name">{{ view.title }}</h1>
+        {%- if view.multi %}
+          <p class="tagline">
+            put together by <a href="/user/{{ view.multi.owner_name }}"
+                               class="author">{{ view.multi.owner_name }}</a>
+            {%- if view.can_edit %}· {{ view.multi.visibility }}{% endif %}
+          </p>
+          {%- if view.multi.description_html %}
+            <div class="usertext-body">
+              <div class="md">{{ view.multi.description_html|safe }}</div>
+            </div>
+          {%- endif %}
+        {%- endif %}
+        <h2>communities in it</h2>
+        <ul class="communities">
+          {%- for name in view.names %}
+            <li>
+              <a href="/in/{{ name }}/">in/{{ name }}</a>
+              {%- if view.can_edit %}
+                {%- call edit_form('remove', 'take out') %}
+                  <input type="hidden" name="community_name" value="{{ name }}">
+                {% endcall %}
+              {%- endif %}
+            </li>
+          {%- else %}
+            <li class="empty">none yet</li>
+          {%- endfor %}
+        </ul>
+        {%- if view.can_edit %}
+          {%- call edit_form('add', 'add') %}
+            <input type="text"
+                   name="community_name"
+                   placeholder="a community's name"
+                   aria-label="community to add">
+          {%- endcall %}
+          <h2>about it</h2>
+          {%- call edit_form('update', 'save') %}
+            <input type="text"
+                   name="display_name"
+                   value="{{ view.multi.display_name }}"
+                   maxlength="50"
+                   placeholder="its name, as shown"
+                   aria-label="name, as shown">
+            <textarea name="description_md"
+                      rows="3"
+                      placeholder="what it's for"
+                      aria-label="description">{{ view.multi.description_md }}</textarea>
+            <span class="group-label">who can see it</span>
+            {%- for visibility in view.visibilities %}
+              <label class="choice-row">
+                <input type="radio"
+                       name="visibility"
+                       value="{{ visibility }}"
+                       {% if view.multi.visibility == visibility %}checked{% endif %}>
+                {{ visibility }}
+              </label>
+            {%- endfor %}
+          {%- endcall %}
+          {%- call edit_form('delete', 'delete it') %}
+          {% endcall %}
+        {%- elif view.multi and view.viewer %}
+          <h2>make your own copy</h2>
+          {%- call edit_form('copy', 'copy') %}
+            <input type="text"
+                   name="name"
+                   placeholder="name your copy"
+                   maxlength="21"
+                   aria-label="name for the copy">
+          {%- endcall %}
+        {%- endif %}
+      </div>
+    </section>
+  </aside>
+{%- endblock %}
+{%- block content %}
+  {{ listing(view, view.listing) }}
+{%- endblock %}

@@ -1,0 +1,696 @@
+/*
+ * Pages with their own parts: moderation, the wiki, flair, the stylesheet editor, traffic,
+ * interstitials, search, the community directory and multis.
+ */
+
+/* The moderation log and queues. */
+.modactionlisting {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.modactionlisting td,
+.modactionlisting th {
+  padding: 3px 8px 3px 0;
+  border-bottom: 1px solid var(--ina-rule);
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.9rem;
+}
+
+.modactions {
+  color: var(--ina-muted);
+}
+
+.modqueue .thing,
+.thing.spam {
+  border-left: 3px solid var(--ina-error);
+  padding-left: 6px;
+}
+
+.report-reasons {
+  color: var(--ina-error);
+  font-size: 0.85rem;
+}
+
+.invites,
+.permissions {
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+}
+
+.accept-invite {
+  margin: 8px 0;
+  padding: 8px 10px;
+  background: var(--ina-notice);
+  border: 1px solid var(--ina-notice-edge);
+  border-radius: 4px;
+}
+
+/* The wiki. */
+.pageactions,
+.wikiaction {
+  margin: 4px 0 8px;
+}
+
+.pageactions a,
+.wikiaction a {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.wikiaction-current {
+  color: var(--ina-accent);
+}
+
+.wikititle {
+  font-size: 1.3rem;
+  margin: 6px 0;
+}
+
+.wiki-page-content {
+  max-width: 62em;
+}
+
+.wiki-page-content .md {
+  max-width: none;
+}
+
+#wiki_page_content,
+#stylesheet_contents {
+  width: 100%;
+  min-height: 24em;
+  box-sizing: border-box;
+  font-family: var(--ina-mono);
+  font-size: 0.95rem;
+}
+
+.wiki-diff ins,
+.wiki-source ins {
+  background: #e6ffed;
+  text-decoration: none;
+}
+
+.wiki-diff del,
+.wiki-source del {
+  background: #ffeef0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .wiki-diff ins,
+  .wiki-source ins {
+    background: #17321e;
+  }
+
+  .wiki-diff del,
+  .wiki-source del {
+    background: #412121;
+  }
+}
+
+.wiki-source,
+.wiki-diff {
+  font-family: var(--ina-mono);
+  white-space: pre-wrap;
+  background: var(--ina-panel);
+  border: 1px solid var(--ina-rule);
+  padding: 6px 8px;
+}
+
+table.wiki-revisions {
+  border-collapse: collapse;
+}
+
+table.wiki-revisions td {
+  padding: 2px 10px 2px 0;
+  border-bottom: 1px solid var(--ina-rule);
+}
+
+.revision.hidden,
+.revision .hidden {
+  color: var(--ina-faint);
+}
+
+/* Flair: the settings, the template list and each row's form. */
+.flair-settings,
+.flairlist {
+  margin: 8px 0 16px;
+}
+
+.flairrow,
+.flairtemplate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--ina-rule);
+}
+
+.flairrow > form {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.flaircell {
+  min-width: 10em;
+}
+
+.flairgrant input[type='text'] {
+  width: 12em;
+}
+
+.flair-jump {
+  font-size: 0.85rem;
+}
+
+/* The stylesheet editor and its images. */
+.stylesheet-customize-container {
+  max-width: 62em;
+}
+
+.image-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-list li {
+  border: 1px solid var(--ina-border);
+  border-radius: 4px;
+  padding: 6px;
+  max-width: 150px;
+  font-size: 0.85rem;
+  overflow-wrap: break-word;
+}
+
+.image-list img {
+  max-width: 100%;
+  display: block;
+}
+
+.image-upload {
+  margin: 8px 0;
+}
+
+/* Traffic: three tables side by side, each row with a bar. */
+.traffic-tables .traffic-table {
+  display: inline-table;
+  vertical-align: top;
+  margin: 12px 24px 12px 0;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.traffic-table caption {
+  text-align: left;
+  font-weight: bold;
+  font-size: 1rem;
+  padding-bottom: 4px;
+}
+
+.traffic-table th,
+.traffic-table td {
+  padding: 1px 6px;
+  text-align: right;
+}
+
+.traffic-table thead th:first-child,
+.traffic-table tbody th {
+  text-align: left;
+  font-weight: normal;
+}
+
+.traffic-table tbody tr:nth-child(even) {
+  background: var(--ina-panel);
+}
+
+.traffic-table meter {
+  width: 80px;
+}
+
+/* Interstitials: one question in the middle of the page. */
+.interstitial {
+  max-width: 34em;
+  margin: 48px auto;
+  text-align: center;
+}
+
+.interstitial-image {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.interstitial .md {
+  margin: 0 auto;
+}
+
+.interstitial h3 {
+  font-size: 1.35rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.interstitial .buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.interstitial .btn {
+  min-width: 10em;
+  padding: 8px 16px;
+  font-weight: bold;
+}
+
+/* Search results. */
+.search-page .search-result {
+  margin: 0 0 12px;
+}
+
+.search-result-group {
+  margin: 12px 0;
+}
+
+.search-title {
+  font-size: 1.15rem;
+}
+
+.search-result-community,
+.search-subscribers {
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+}
+
+/* The community directory. */
+.communities .thing,
+.thing.community {
+  display: block;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--ina-rule);
+}
+
+.thing.community .titlerow {
+  font-size: 1.1rem;
+}
+
+.thing.community .description {
+  color: var(--ina-muted);
+  margin: 2px 0;
+}
+
+.subscribe-button {
+  margin-right: 6px;
+}
+
+/* Multis. */
+.multi-details {
+  border: 1px solid var(--ina-border);
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.multi-details ul {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+}
+
+/* A profile's friend button, under the name. */
+.friend-form {
+  margin: 4px 0 6px;
+}
+
+/* A profile: karma in the sidebar, and comments shown with the post they answer. */
+.karma-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  /* Each number goes left of the label before it, filling the cell the label skipped. */
+  grid-auto-flow: dense;
+  gap: 2px 10px;
+  align-items: baseline;
+  margin: 6px 0;
+}
+
+.karma-list dt {
+  grid-column: 2;
+  color: var(--ina-muted);
+}
+
+.karma-list dd {
+  grid-column: 1;
+  margin: 0;
+  text-align: right;
+}
+
+.profile-comment > .parent {
+  margin: 0 0 2px;
+  font-size: 0.9rem;
+}
+
+.profile-comment > .parent .title {
+  color: var(--ina-title);
+}
+
+.traffic-terms {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  max-width: 60em;
+}
+
+.traffic-terms dt {
+  font-weight: bold;
+}
+
+.traffic-terms dd {
+  margin: 0;
+}
+
+/* The search forms at the top of the search and directory pages. */
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.search-form input[type='text'] {
+  flex: 1 1 280px;
+  max-width: 520px;
+  padding: 6px 8px;
+  font-size: 1.05rem;
+}
+
+.thing.community .subtitle {
+  margin-left: 6px;
+  font-weight: normal;
+  color: var(--ina-muted);
+  font-size: 0.95rem;
+}
+
+.thing.community h2.titlerow {
+  margin: 0 0 2px;
+  font-size: 1.1rem;
+}
+
+/* /prefs/apps: apps made and apps let in, one to a row. */
+.app-list {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 0;
+}
+
+.app-list .app {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--ina-rule);
+}
+
+.app-list .app:last-child {
+  border-bottom: 0;
+}
+
+.app-list h3 {
+  margin: 0 0 2px;
+  font-size: 1rem;
+}
+
+.app-list dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 12px;
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.app-list dt {
+  color: var(--ina-muted);
+}
+
+.app-list dd {
+  margin: 0;
+}
+
+.app-list form {
+  display: inline;
+  margin-right: 8px;
+}
+
+.app-list details form,
+.settings-section > details form {
+  display: block;
+  margin: 6px 0;
+}
+
+.scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.app-list .scopes li {
+  padding: 1px 6px;
+  border: 1px solid var(--ina-border);
+  border-radius: 3px;
+  background: var(--ina-panel);
+  font-size: 0.85rem;
+}
+
+.app-secret {
+  user-select: all;
+}
+
+/* /api/v1/authorize: what an app asks for. */
+.authorize {
+  max-width: 640px;
+}
+
+.authorize .scopes {
+  display: block;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+/* /dev/api: routes by scope. */
+.api-endpoints {
+  border-collapse: collapse;
+  margin: 4px 0 16px;
+}
+
+.api-endpoints td {
+  padding: 2px 12px 2px 0;
+  border-bottom: 1px solid var(--ina-rule);
+  vertical-align: top;
+}
+
+.api-endpoints .method {
+  color: var(--ina-muted);
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+/* Admin mode: its box in a community's sidebar, and a banned community's notice. */
+.admin-box {
+  border: 1px solid var(--ina-admin);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.admin-box h2 {
+  margin: 0 0 4px;
+  color: var(--ina-admin);
+  font-size: 0.9rem;
+}
+
+.admin-form {
+  margin: 0 0 6px;
+}
+
+.admin-form select,
+.admin-form input[type='text'],
+.admin-form input[type='number'] {
+  display: block;
+  width: 100%;
+  margin: 0 0 4px;
+  box-sizing: border-box;
+}
+
+.admin-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.admin-table td {
+  padding: 4px 8px 4px 0;
+  vertical-align: top;
+  border-bottom: 1px solid var(--ina-rule);
+}
+
+.admin-table .state {
+  color: var(--ina-admin);
+}
+
+.admin-actions summary {
+  cursor: pointer;
+}
+
+.admin-actions[open] {
+  min-width: 16rem;
+}
+
+a.admin-mode,
+button.admin-mode {
+  color: var(--ina-admin);
+  font-weight: bold;
+}
+
+/* The admin bar: where the page's time went. Fixed to the bottom, above everything. */
+.admin-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  max-height: 60vh;
+  overflow: auto;
+  background: var(--ina-panel);
+  border-top: 2px solid var(--ina-border);
+  color: var(--ina-text);
+  font-size: 0.75rem;
+}
+
+.admin-bar-admin {
+  border-top-color: var(--ina-admin);
+}
+
+body.with-admin-bar {
+  padding-bottom: 2.5rem;
+}
+
+.admin-bar-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  padding: 4px 10px;
+}
+
+.admin-bar-mode {
+  color: var(--ina-admin);
+}
+
+.admin-bar-totals {
+  color: var(--ina-muted);
+}
+
+.admin-bar-buttons {
+  margin-left: auto;
+}
+
+.admin-bar-show {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 100;
+  font-size: 0.75rem;
+}
+
+.admin-bar-details {
+  padding: 0 10px 8px;
+}
+
+.admin-bar-details h3 {
+  margin: 6px 0 2px;
+  font-size: 0.8rem;
+}
+
+.admin-bar-timelines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 0 20px;
+}
+
+.admin-bar-timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-bar-timeline li {
+  display: grid;
+  grid-template-columns: 11rem 1fr 4rem;
+  gap: 6px;
+  align-items: center;
+}
+
+.admin-bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-bar-track {
+  display: block;
+  height: 8px;
+  background: var(--ina-rule);
+}
+
+.admin-bar-span {
+  display: block;
+  height: 100%;
+  background: var(--ina-faint);
+}
+
+.admin-bar-pg {
+  background: var(--ina-down);
+}
+
+.admin-bar-redis {
+  background: var(--ina-admin);
+}
+
+.admin-bar-search {
+  background: var(--ina-friend);
+}
+
+.admin-bar-storage {
+  background: var(--ina-moderator);
+}
+
+.admin-bar-render,
+.admin-bar-browser {
+  background: var(--ina-purple);
+}
+
+.admin-bar-ms {
+  color: var(--ina-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-bar-sql ol {
+  margin: 0;
+  padding: 0 0 0 2.5em;
+}
+
+.admin-bar-sql li {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: 12px;
+  margin: 0 0 4px;
+}
+
+.admin-bar-sql code {
+  font-family: var(--ina-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

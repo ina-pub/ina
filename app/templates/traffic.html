@@ -1,0 +1,63 @@
+{%- extends "base.html" -%}
+{%- from "macros/communities.html" import sidebar -%}
+{%- macro table(rows, caption, format, subscriptions=False) -%}
+  {%- set most = view.most(rows) -%}
+  <table class="traffic-table timeseries">
+    <caption>{{ caption }}</caption>
+    <thead>
+      <tr>
+        <th scope="col">date</th>
+        <th scope="col">visitors</th>
+        <th scope="col">views</th>
+        {%- if subscriptions %}<th scope="col">joined</th>{% endif %}
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for row in rows %}
+        <tr>
+          <th scope="row">
+            <time datetime="{{ row.start.isoformat() }}">{{ row.start.strftime(format) }}</time>
+          </th>
+          <td>{{ row.uniques }}</td>
+          <td>{{ row.pageviews }}</td>
+          {%- if subscriptions %}<td>{{ row.subscriptions }}</td>{% endif %}
+          <td>
+            <meter value="{{ row.pageviews }}"
+                   max="{{ most }}"
+                   aria-label="views">{{ row.pageviews }}</meter>
+          </td>
+        </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+{%- endmacro -%}
+{%- block pagename %}
+  <a href="{{ view.community.path }}" class="pagename community-name">{{ view.community.name }}</a>
+{%- endblock %}
+{%- block side %}
+  {{ sidebar(view, request) }}
+{%- endblock %}
+{%- block content %}
+  <h1>who visits in/{{ view.community.name }}</h1>
+  <dl class="traffic-terms">
+    <dt>views</dt>
+    <dd>
+      every page of the community that was opened: its listings and its threads
+    </dd>
+    <dt>visitors</dt>
+    <dd>
+      different people among those views; an account counts once, and so does a browser that is logged out
+    </dd>
+    <dt>joined</dt>
+    <dd>
+      people who joined the community that day (leaving isn't counted)
+    </dd>
+  </dl>
+  <p class="details">Times are UTC.</p>
+  <div class="traffic-tables">
+    {{ table(view.hours, 'by hour', '%Y-%m-%d %H:00') }}
+    {{ table(view.days, 'by day', '%Y-%m-%d', subscriptions=True) }}
+    {{ table(view.months, 'by month', '%B %Y') }}
+  </div>
+{%- endblock %}

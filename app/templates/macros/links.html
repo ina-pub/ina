@@ -1,0 +1,179 @@
+{#- A link in a listing, the sort tabs above a listing, and the listing with its pages.
+    The class names and data attributes are what community stylesheets select on. -#}
+{%- from "macros/votes.html" import arrows -%}
+{%- from "macros/moderation.html" import mod_buttons, nsfw_button, report -%}
+{%- from "macros/flair.html" import author_flair, link_flair -%}
+{%- from "macros/usertext.html" import author_buttons -%}
+{%- from "macros/marks.html" import toggle -%}
+{%- macro byline(row, view) -%}
+  {%- set link = row.link -%}
+  {%- if row.author is none -%}
+    <span class="author deleted">[deleted]</span>
+  {%- else -%}
+    {%- if row.author_flair and row.author_flair.position == "left" %}{{ author_flair(row.author_flair) }} {% endif -%}
+    <a href="/user/{{ link.author_name }}"
+       class="author{% if row.friend %} friend{% endif %}{% if link.distinguished == 'admin' %} admin{% elif link.distinguished %} moderator{% endif %}">{{ link.author_name }}</a>
+    {%- if link.distinguished == "admin" %}
+      <span class="userattrs admin" title="speaking as one of this site's admins">admin</span>
+    {%- elif link.distinguished %}
+      <a class="userattrs moderator"
+         href="/in/{{ link.community_name }}/about/moderators"
+         title="speaking as an innkeeper of in/{{ link.community_name }}">mod</a>
+    {%- endif -%}
+    {%- if row.author_flair and row.author_flair.position == "right" %} {{ author_flair(row.author_flair) }}{% endif -%}
+  {%- endif -%}
+{%- endmacro -%}
+{%- macro link_thing(row, view, show_community=True) -%}
+  {%- set link = row.link -%}
+  <article class="thing id-{{ link.fullname }} link{% if link.is_self %} self{% endif %}{% if link.nsfw %} over18{% endif %}{% if link.stickied %} stickied{% endif %}{% if row.saved %} saved{% endif %}{{ row.flair_classes }}"
+           data-fullname="{{ link.fullname }}"
+           data-community="{{ link.community_name }}"
+           data-author="{{ link.author_name }}"
+           data-domain="{{ link.domain }}">
+    {%- if row.rank %}<span class="rank">{{ row.rank }}</span>{% endif %}
+    <div class="midcol {{ row.vote_class }}">
+      {%- set down, same, up = scores(link.score, row.likes) %}
+      {%- call arrows(view.viewer, link.fullname, row.likes, request.url.path) %}
+        <div class="score dislikes">{{ down }}</div>
+        <div class="score unvoted">{{ same }}</div>
+        <div class="score likes">{{ up }}</div>
+      {%- endcall %}
+    </div>
+    {%- set thumb = row.thumbnail %}
+    <a class="thumbnail {{ thumb.kind }}"
+       href="{{ row.href }}"
+       aria-hidden="true"
+       tabindex="-1">
+      {%- if thumb.kind == "image" %}
+        <img src="{{ thumb.url }}"
+             width="{{ thumb.width }}"
+             height="{{ thumb.height }}"
+             alt="">
+      {%- endif -%}
+    </a>
+    <div class="entry {{ row.vote_class }}">
+      <p class="title">
+        {%- if row.link_flair and row.link_flair.position == "left" %}{{ link_flair(row.link_flair) }} {% endif -%}
+        <a class="title"
+           href="{{ row.href }}"
+           {% if not link.is_self %}rel="nofollow"{% endif %}>{{ link.title }}</a>
+        {%- if row.link_flair and row.link_flair.position == "right" %} {{ link_flair(row.link_flair) }}{% endif %}
+        {%- if link.nsfw %} <span class="nsfw-stamp stamp"
+                                  title="not safe for work">nsfw</span>{% endif %}
+        <a class="domain"
+           href="{{ row.permalink if link.is_self else '/domain/' ~ link.domain ~ '/' }}">{{ link.domain }}</a>
+      </p>
+      {%- set expando = row.expando if caller is not defined else none %}
+      {%- if expando %}
+        {#- Opens in place with JS; without it, goes to the post or the image. #}
+        <a href="{{ row.href }}"
+           class="expando-button collapsed {{ expando }}"
+           aria-label="show {{ 'text' if expando == 'selftext' else 'image' }}"></a>
+      {%- endif %}
+      <p class="tagline">
+        posted <time title="{{ link.created.strftime('%Y-%m-%d %H:%M UTC') }}"
+                     datetime="{{ link.created.isoformat() }}"
+                     class="live-timestamp">{{ link.created|age(view.now) }}</time>
+        {%- if link.edited %}
+          <time class="edited-timestamp"
+                title="edited {{ link.edited|age(view.now) }}"
+                datetime="{{ link.edited.isoformat() }}">*</time>
+        {%- endif %}
+        by {{ byline(row, view) }}
+        {%- if show_community %}
+          in <a href="/in/{{ link.community_name }}/"
+                class="community">in/{{ link.community_name }}</a>
+        {%- endif %}
+      </p>
+      {%- if caller is defined %}
+        {#- A self post's own page passes its text in here, above the buttons. #}
+        <div class="expando">{{ caller() }}</div>
+      {%- endif %}
+      <ul class="flat-list buttons">
+        <li>
+          <a href="{{ row.permalink }}" class="comments">
+            {%- if link.comment_count %}{{ link.comment_count|plural("comment") }}{% else %}discuss{% endif -%}
+          </a>
+        </li>
+        {%- if view.viewer %}
+          {{ toggle(view.viewer, link.fullname, request.url.path, 'save', row.saved) }}
+          {{ toggle(view.viewer, link.fullname, request.url.path, 'hide', row.hidden) }}
+        {%- endif %}
+        {%- set moderating = view.sidebar is defined and view.sidebar.can_moderate %}
+        {%- if view.viewer and row.author == view.viewer.name %}
+          {{ author_buttons(view.viewer, link.fullname, row.permalink, request.url.path, editable=link.is_self) }}
+          {% if not moderating %}{{ nsfw_button(view.viewer, link, request.url.path) }}{% endif %}
+        {%- endif %}
+        {{ report(view.viewer, link.fullname, request.url.path) }}
+        {%- if moderating %}
+          {{ mod_buttons(view.viewer, link, request.url.path, is_link=True) }}
+        {%- endif %}
+      </ul>
+      {#- In a listing the text or image opens below the buttons, which stay by the button. #}
+      {%- if expando == "selftext" %}
+        <div class="expando" hidden>
+          <div class="usertext">
+            <div class="usertext-body md-container">
+              <div class="md">{{ link.selftext_html|safe }}</div>
+            </div>
+          </div>
+        </div>
+      {%- elif expando %}
+        <div class="expando" hidden>
+          <div class="media-preview">
+            <a href="{{ link.url }}" rel="nofollow">
+              <img data-src="{{ link.url }}" class="preview" alt="{{ link.title }}">
+            </a>
+          </div>
+        </div>
+      {%- endif %}
+    </div>
+  </article>
+{%- endmacro -%}
+{%- macro sort_tabs(listing, wiki=none) -%}
+  <ul class="tabmenu">
+    {%- for sort in listing.sorts %}
+      <li {% if listing.sort == sort %}class="selected"{% endif %}>
+        <a href="{{ listing.sort_path(sort) }}" class="choice">{{ sort.value }}</a>
+      </li>
+    {%- endfor %}
+    {%- if wiki %}
+      <li>
+        <a href="{{ wiki }}" class="choice">wiki</a>
+      </li>
+    {%- endif %}
+  </ul>
+{%- endmacro -%}
+{%- macro pages(prev_query, next_query) -%}
+  {%- if prev_query or next_query %}
+    <nav class="nav-buttons" aria-label="pages">
+      <span class="nextprev">
+        {%- if prev_query %}
+          <a href="{{ prev_query }}" rel="nofollow prev" class="prev-button">‹ previous</a>
+        {%- endif %}
+        {%- if next_query %}
+          <a href="{{ next_query }}" rel="nofollow next" class="next-button">next ›</a>
+        {%- endif %}
+      </span>
+    </nav>
+  {%- endif %}
+{%- endmacro -%}
+{%- macro listing(view, listing, show_community=True) -%}
+  {%- if listing.windowed %}
+    <div class="menuarea">
+      <span class="dropdown-title">from the</span>
+      {%- for value, label in listing.time_filters %}
+        <a href="?t={{ value }}"
+           class="choice{% if listing.time_filter == value %} selected{% endif %}">{{ label }}</a>
+      {%- endfor %}
+    </div>
+  {%- endif %}
+  <div id="siteTable" class="sitetable linklisting">
+    {%- for row in listing.rows %}
+      {{ link_thing(row, view, show_community) }}
+    {%- else %}
+      <p id="noresults" class="empty">nothing here yet</p>
+    {%- endfor %}
+  </div>
+  {{ pages(listing.prev_query, listing.next_query) }}
+{%- endmacro -%}

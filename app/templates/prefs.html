@@ -1,0 +1,145 @@
+{%- extends "base.html" -%}
+{%- from "macros/forms.html" import uh -%}
+{%- from "macros/prefs.html" import prefs_tabs -%}
+{%- macro checkbox(name, text, note='') -%}
+  <p class="choice-row">
+    <input name="{{ name }}"
+           id="{{ name }}"
+           type="checkbox"
+           {% if view.prefs[name] %}checked{% endif %}>
+    <label for="{{ name }}">{{ text }}</label>
+    {%- if note %}<span class="details">{{ note }}</span>{% endif %}
+  </p>
+{%- endmacro -%}
+{%- macro radio(name, value, text) -%}
+  <p class="choice-row">
+    <input type="radio"
+           name="{{ name }}"
+           id="{{ name }}_{{ value }}"
+           value="{{ value }}"
+           {% if view.prefs[name] == value %}checked{% endif %}>
+    <label for="{{ name }}_{{ value }}">{{ text }}</label>
+  </p>
+{%- endmacro -%}
+{%- macro score_floor(name, what) -%}
+  <p class="choice-row">
+    <label for="{{ name }}">hide {{ what }} scoring below</label>
+    <input type="number"
+           id="{{ name }}"
+           name="{{ name }}"
+           class="short"
+           value="{{ view.prefs[name] if view.prefs[name] is not none else '' }}">
+    <span class="details">empty shows them all</span>
+  </p>
+{%- endmacro -%}
+{%- block content %}
+  {{ prefs_tabs("options") }}
+  {%- if view.done %}
+    <p class="notice">Saved.</p>
+  {%- elif view.error %}
+    <p class="error">Those settings couldn't be saved.</p>
+  {%- endif %}
+  <form action="/post/options" method="post" class="settings">
+    {{ uh(view.viewer) }}
+    <fieldset>
+      <legend>language</legend>
+      <p class="choice-row">
+        <label for="lang">show ina in</label>
+        <select name="lang" id="lang">
+          {%- for value, label in view.langs %}
+            <option value="{{ value }}"
+                    {% if view.prefs.lang == value %}selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </p>
+    </fieldset>
+    <fieldset>
+      <legend>links</legend>
+      {{ checkbox('newwindow', 'open links in a new tab') }}
+      <p class="choice-row">
+        <label for="numsites">links per page</label>
+        <select name="numsites" id="numsites">
+          {%- for count in view.numsites_choices %}
+            <option value="{{ count }}"
+                    {% if view.prefs.numsites == count %}selected{% endif %}>{{ count }}</option>
+          {%- endfor %}
+        </select>
+      </p>
+      {{ score_floor('min_link_score', 'links') }}
+      {{ checkbox('hide_ups', 'hide links once I upvote them', 'not my own') }}
+      {{ checkbox('hide_downs', 'hide links once I downvote them', 'not my own') }}
+      {{ checkbox('clickgadget', "list links I've opened recently") }}
+      {{ checkbox('compress', 'a more compact listing') }}
+      {{ checkbox('domain_details', 'say more about where a link goes') }}
+    </fieldset>
+    <fieldset>
+      <legend>thumbnails and previews</legend>
+      <p class="group-label">thumbnails</p>
+      {{ radio('media', 'on', 'always') }}
+      {{ radio('media', 'off', 'never') }}
+      {{ radio('media', 'community', 'as each community chooses') }}
+      <p class="group-label">open image previews on comment pages</p>
+      {{ radio('media_preview', 'on', 'always') }}
+      {{ radio('media_preview', 'off', 'never') }}
+      {{ radio('media_preview', 'community', 'as each community chooses') }}
+      {{ checkbox('no_profanity', 'no thumbnails on anything marked nsfw') }}
+    </fieldset>
+    <fieldset>
+      <legend>comments</legend>
+      <p class="choice-row">
+        <label for="default_comment_sort">order comments by</label>
+        <select name="default_comment_sort" id="default_comment_sort">
+          {%- for value, label in view.comment_sorts %}
+            <option value="{{ value }}"
+                    {% if view.prefs.default_comment_sort == value %}selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </p>
+      {{ checkbox('ignore_suggested_sort', 'use my order even when innkeepers suggest another') }}
+      <p class="choice-row">
+        <label for="num_comments">comments to show at first</label>
+        <input type="number"
+               id="num_comments"
+               name="num_comments"
+               class="short"
+               min="1"
+               max="500"
+               value="{{ view.prefs.num_comments }}">
+        <span class="details">1 to 500</span>
+      </p>
+      {{ score_floor('min_comment_score', 'comments') }}
+      {{ checkbox('highlight_controversial', 'mark much-disputed comments with a dagger (†)') }}
+      {{ checkbox('highlight_new_comments', "highlight comments that are new since I last looked") }}
+    </fieldset>
+    <fieldset>
+      <legend>inbox</legend>
+      {{ checkbox('monitor_mentions', 'tell me when someone mentions my username') }}
+      {{ checkbox('mark_messages_read', 'mark messages read when I open the inbox') }}
+      {{ checkbox('threaded_messages', 'group messages into conversations') }}
+      {{ checkbox('collapse_read_messages', 'fold messages I have read') }}
+      {{ checkbox('threaded_modmail', 'group modmail into conversations') }}
+      {{ checkbox('email_messages', 'email me my messages too') }}
+    </fieldset>
+    <fieldset>
+      <legend>look</legend>
+      {{ checkbox('show_stylesheets', "show communities' own styles") }}
+      {{ checkbox('show_flair', "show people's flair") }}
+      {{ checkbox('show_link_flair', 'show flair on links') }}
+      {{ checkbox('collapse_left_bar', 'fold the left bar') }}
+    </fieldset>
+    <fieldset>
+      <legend>adult content</legend>
+      {{ checkbox('over_18', "I'm over eighteen and want to see adult content", 'some communities need this') }}
+      {{ checkbox('label_nsfw', 'label adult content nsfw') }}
+      {{ checkbox('private_feeds', 'let me use private RSS feeds') }}
+    </fieldset>
+    <fieldset>
+      <legend>privacy</legend>
+      {{ checkbox('public_votes', 'let anyone see what I voted on') }}
+      {{ checkbox('hide_from_robots', 'ask search engines not to list my profile') }}
+    </fieldset>
+    <p class="actions">
+      <button type="submit" class="btn primary save-preferences">save</button>
+    </p>
+  </form>
+{%- endblock %}

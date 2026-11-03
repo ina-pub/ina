@@ -1,0 +1,77 @@
+[tools]
+python = "3.13.18"
+uv = "0.13.6"
+node = "24.22.2"
+biome = "2.6.4"
+git-cliff = "2.14.2"
+pre-commit = "4.3.0"
+
+[env]
+UV_PYTHON_DOWNLOADS = "never"
+UV_PYTHON_PREFERENCE = "only-system"
+LITESTAR_APP = "app.main:create_app"
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.setup]
+description = "Install dependencies and git hooks"
+run = ["uv sync", "pre-commit install --hook-type pre-commit --hook-type commit-msg"]
+
+[tasks.services]
+description = "Start every backing service"
+run = "docker compose up -d --wait"
+
+[tasks.migrate]
+description = "Apply database migrations"
+run = "uv run alembic upgrade head"
+
+[tasks.seed]
+description = "Add sample accounts, communities, links and comments to the dev database"
+run = [
+    "uv run python -m scripts.seed_dev_data",
+    "uv run python -m scripts.rebuild_karma",
+    "uv run python -m scripts.rebuild_search"
+]
+
+[tasks.reset]
+description = "Empty the dev database and Redis, then seed it again"
+run = [
+    "uv run python -m scripts.seed_dev_data --reset",
+    "uv run python -m scripts.rebuild_karma",
+    "uv run python -m scripts.rebuild_search --recreate"
+]
+
+[tasks.rebuild-search]
+description = "Recreate the search indices and fill them from Postgres"
+run = "uv run python -m scripts.rebuild_search --recreate"
+
+[tasks.dev]
+description = "Serve the site with reload"
+run = "uv run litestar run --reload"
+
+[tasks.worker]
+description = "Run the Dramatiq workers"
+run = "uv run dramatiq app.jobs"
+
+[tasks.test]
+description = "CI gate: pytest"
+run = "uv run pytest"
+
+[tasks.lint]
+description = "CI gate: ruff"
+run = ["uv run ruff check", "uv run ruff format --check"]
+
+[tasks.typecheck]
+description = "CI gate: mypy"
+run = "uv run mypy"
+
+[tasks.biome]
+description = "CI gate: biome"
+run = "biome ci --no-errors-on-unmatched static/"
+
+[tasks.test-snudown]
+description = "Run the vendored snudown's upstream test suite"
+run = """uv run python -c "import sys, unittest; sys.path.insert(0, 'vendor/snudown'); import test_snudown; result = unittest.TextTestRunner(verbosity=0).run(test_snudown.test_snudown()); sys.exit(not result.wasSuccessful())""""
+
+[tasks.check]
+description = "Run all four CI gates"
+depends = ["lint", "typecheck", "biome", "test"]
