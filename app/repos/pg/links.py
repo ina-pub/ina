@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from sqlalchemy import ColumnElement, Row, Select, Update
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from app.repos.base import ListingQuery, NewLink, ProfileQuery
+    from app.repos.base import Embed, ListingQuery, NewLink, ProfileQuery
 
 COLUMNS = (
     links.c.id,
@@ -77,6 +77,9 @@ COLUMNS = (
     func.coalesce(links.c.media['thumbnail'].astext, '').label('thumbnail'),
     func.coalesce(links.c.media['thumbnail_width'].as_integer(), 0).label('thumbnail_width'),
     func.coalesce(links.c.media['thumbnail_height'].as_integer(), 0).label('thumbnail_height'),
+    func.coalesce(links.c.media['embed']['provider'].astext, '').label('embed_provider'),
+    func.coalesce(links.c.media['embed']['id'].astext, '').label('embed_id'),
+    func.coalesce(links.c.media['embed']['start'].as_integer(), 0).label('embed_start'),
 )
 JOINED = links.join(communities, communities.c.id == links.c.community_id).join(
     accounts, accounts.c.id == links.c.author_id
@@ -206,6 +209,19 @@ class PgLinkRepo:
     async def set_thumbnail(self, link_id: int, key: str, size: tuple[int, int]) -> None:
         added = func.jsonb_build_object(
             'thumbnail', key, 'thumbnail_width', size[0], 'thumbnail_height', size[1]
+        )
+        await self.session.execute(
+            update(links)
+            .where(links.c.id == link_id)
+            .values(media=func.coalesce(links.c.media, text("'{}'::jsonb")).op('||')(added))
+        )
+
+    async def set_embed(self, link_id: int, embed: Embed) -> None:
+        added = func.jsonb_build_object(
+            'embed',
+            func.jsonb_build_object(
+                'provider', embed.provider, 'id', embed.id, 'start', embed.start
+            ),
         )
         await self.session.execute(
             update(links)

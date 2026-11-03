@@ -65,10 +65,10 @@
       </p>
       {%- set expando = row.expando if caller is not defined else none %}
       {%- if expando %}
-        {#- Opens in place with JS; without it, goes to the post or the image. #}
+        {#- Opens in place with JS; without it, goes to the post or what it links to. #}
         <a href="{{ row.href }}"
            class="expando-button collapsed {{ expando }}"
-           aria-label="show {{ 'text' if expando == 'selftext' else 'image' }}"></a>
+           aria-label="show {{ 'text' if expando == 'selftext' else expando }}"></a>
       {%- endif %}
       <p class="tagline">
         posted <time title="{{ link.created.strftime('%Y-%m-%d %H:%M UTC') }}"
@@ -109,13 +109,39 @@
           {{ mod_buttons(view.viewer, link, request.url.path, is_link=True) }}
         {%- endif %}
       </ul>
-      {#- In a listing the text or image opens below the buttons, which stay by the button. #}
+      {#- In a listing what it shows opens below the buttons, which stay by the button. #}
       {%- if expando == "selftext" %}
         <div class="expando" hidden>
           <div class="usertext">
             <div class="usertext-body md-container">
               <div class="md">{{ link.selftext_html|safe }}</div>
             </div>
+          </div>
+        </div>
+      {%- elif expando and row.player %}
+        {#- The player loads only once opened, so a listing contacts none of these sites. #}
+        {%- set provider = row.player.provider %}
+        <div class="expando" hidden>
+          <div class="media-embed">
+            <iframe data-src="{{ row.player.src }}"
+                    class="embed embed-{{ provider.layout }}{{ ' embed-resizes' if provider.resizes }}"
+                    title="{{ provider.name }}: {{ link.title }}"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    allowfullscreen
+                    referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          </div>
+        </div>
+      {%- elif expando == "video" %}
+        <div class="expando" hidden>
+          <div class="media-preview">
+            <video data-src="{{ row.video_src }}"
+                   class="preview"
+                   controls
+                   playsinline
+                   preload="metadata"
+                   aria-label="{{ link.title }}">
+            </video>
           </div>
         </div>
       {%- elif expando %}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <title>audio</title>
+  <path d="M6 12V3.5l7-1.5v8.5" fill="none" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="4.25" cy="12" r="2"/>
+  <circle cx="11.25" cy="10.5" r="2"/>
+</svg>

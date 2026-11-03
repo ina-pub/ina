@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     media_url: str = '/media'
     # Make thumbnails for new links by fetching what they point to.
     thumbnails: bool = True
+    # Find players for new links to listed video, audio and social sites (app/services/embeds.py).
+    embeds: bool = True
     # Let that fetching reach private addresses. Only for tests, which serve pages locally.
     media_allow_private: bool = False
 

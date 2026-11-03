@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy import update
 
 from app.ids import Fullname, Kind
-from app.repos.base import ListingQuery, Sort
+from app.repos.base import Embed, ListingQuery, Sort
 from app.repos.pg.accounts import PgAccountRepo
 from app.repos.pg.tables import links
 from app.services import ranking
@@ -24,6 +24,17 @@ async def test_create_and_find(world: World) -> None:
     assert await world.links.by_ids([link.id, link.id + 99]) == {link.id: link}
     assert await world.links.by_url(link.community_id, link.url) == link
     assert await world.links.by_url(world.community_ids['funny'], link.url) is None
+
+
+async def test_media_keeps_the_thumbnail_and_the_embed(world: World) -> None:
+    link = await world.link('video')
+    assert link.embed is None
+    await world.links.set_thumbnail(link.id, 'thumbs/a.jpg', (70, 40))
+    await world.links.set_embed(link.id, Embed('youtube', 'dQw4w9WgXcQ', 43))
+    found = await world.links.by_id(link.id)
+    assert found is not None
+    assert found.embed == Embed('youtube', 'dQw4w9WgXcQ', 43)
+    assert (found.thumbnail, found.thumbnail_width) == ('thumbs/a.jpg', 70)
 
 
 async def test_sorts_and_pages(world: World) -> None:

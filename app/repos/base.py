@@ -422,10 +422,34 @@ class Link:
     thumbnail: str = ''
     thumbnail_width: int = 0
     thumbnail_height: int = 0
+    # The site whose player the link opens in, and the post there; empty until the media job
+    # finds one. See Embed.
+    embed_provider: str = ''
+    embed_id: str = ''
+    embed_start: int = 0
 
     @property
     def fullname(self) -> Fullname:
         return Fullname(Kind.LINK, self.id)
+
+    @property
+    def embed(self) -> Embed | None:
+        if not self.embed_provider:
+            return None
+        return Embed(self.embed_provider, self.embed_id, self.embed_start)
+
+
+@dataclass(frozen=True, slots=True)
+class Embed:
+    """A post on another site that a link plays in that site's player (app/services/embeds.py).
+
+    ``id`` is whatever that site's player needs, e.g. a YouTube video ID or a Bluesky author's
+    DID and record key; ``start`` is where a video starts, in seconds.
+    """
+
+    provider: str
+    id: str
+    start: int = 0
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -509,6 +533,8 @@ class LinkRepo(Protocol):
         ...
 
     async def set_thumbnail(self, link_id: int, key: str, size: tuple[int, int]) -> None: ...
+
+    async def set_embed(self, link_id: int, embed: Embed) -> None: ...
 
     async def by_ids(self, link_ids: list[int]) -> dict[int, Link]: ...
 

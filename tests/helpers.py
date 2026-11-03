@@ -81,6 +81,7 @@ async def run_published(published: list[Message[Any]]) -> list[str]:
         'send_password_reset': mail.password_reset,
         'bouncer_check': bouncer.check,
         'make_thumbnail': media.link_thumbnail,
+        'find_embed': media.link_embed,
         'index_link': search.link_indexing,
         'index_community': search.community_indexing,
     }

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from app.ids import Fullname
 from app.repos.base import Mark, Prefs
+from app.services import embeds
 from app.services import flair as flair_service
 from app.services.relations import FRIEND
 from app.views.links import LinkRow, Thumb
@@ -34,6 +35,8 @@ class PageDetails:
     display: FlairDisplay
     prefs: Prefs
     media_url: str
+    # This site's host name, which Twitch's player must be told.
+    site_host: str
     saved: frozenset[Fullname] = frozenset()
     hidden: frozenset[Fullname] = frozenset()
     # Authors on the page who are the viewer's friends.
@@ -57,6 +60,7 @@ class PageDetails:
         return Thumb('image', url, link.thumbnail_width, link.thumbnail_height)
 
     def row(self, link: Link, rank: int | None, directions: dict[int, int]) -> LinkRow:
+        embed = link.embed
         return LinkRow(
             link,
             rank,
@@ -67,6 +71,8 @@ class PageDetails:
             saved=link.fullname in self.saved,
             hidden=link.fullname in self.hidden,
             friend=link.author_id in self.friends,
+            player=embeds.player(embed, self.site_host) if embed else None,
+            over_18=self.prefs.over_18,
         )
 
 
@@ -79,6 +85,7 @@ class Details:
     marks: MarkRepo
     accounts: AccountRepo
     media_url: str = '/media'
+    site_host: str = 'localhost'
 
     async def of(
         self,
@@ -99,7 +106,7 @@ class Details:
             self.flair, self.communities, prefs, authors, known=known
         )
         if viewer is None:
-            return PageDetails(shown, prefs, self.media_url)
+            return PageDetails(shown, prefs, self.media_url, self.site_host)
         link_names = [link.fullname for link in links]
         names = link_names + [comment.fullname for comment in comments]
         account_id = viewer.account.id
@@ -108,6 +115,7 @@ class Details:
             shown,
             prefs,
             self.media_url,
+            self.site_host,
             frozenset(await self.marks.among(account_id, Mark.SAVED, names)),
             frozenset(await self.marks.among(account_id, Mark.HIDDEN, link_names)),
             frozenset(await self.accounts.related_among(account_id, FRIEND, author_ids)),

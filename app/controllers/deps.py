@@ -7,6 +7,7 @@ trusted objects built by the app, and converting them on every request would onl
 from __future__ import annotations
 
 from typing import TypeAlias
+from urllib.parse import urlsplit
 
 from litestar.di import NamedDependency
 from litestar.params import SkipValidation
@@ -148,4 +149,5 @@ def provide_details(
     accounts: AccountsDep,
     settings: SettingsDep,
 ) -> Details:
-    return Details(flair, communities, marks, accounts, settings.media_url)
+    host = urlsplit(settings.site_url).hostname or 'localhost'
+    return Details(flair, communities, marks, accounts, settings.media_url, host)

@@ -17,6 +17,7 @@ os.environ['INA_SEARCH_REFRESH'] = 'true'
 os.environ['INA_S3_BUCKET'] = 'ina-test'
 # Tests that want thumbnails turn this on and serve the pages themselves.
 os.environ['INA_THUMBNAILS'] = 'false'
+os.environ['INA_EMBEDS'] = 'false'
 # The thumbnail tests serve their pages from this machine.
 os.environ['INA_MEDIA_ALLOW_PRIVATE'] = 'true'
 # Cheap hashing: the cost is a deployment setting, not something the tests check.

@@ -7,6 +7,7 @@ from urllib.parse import urlencode, urlsplit
 
 from app.ids import Fullname, Kind
 from app.repos.base import Sort
+from app.services.embeds import video_source
 from app.services.links import MAX_TITLE
 from app.services.listings import TIME_FILTERS
 from app.text.urls import slug
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
     from app.errors import FieldError
     from app.jsontypes import JSON
     from app.repos.base import Community, FlairTemplate, Link, Multi
+    from app.services.embeds import Player
     from app.services.flair import Shown
     from app.services.links import SubmitForm
     from app.views.comments import Thread
@@ -48,11 +50,16 @@ def link_data(
     thumbnail: Thumb | None = None,
     saved: bool = False,
     hidden: bool = False,
+    player: Player | None = None,
 ) -> dict[str, JSON]:
     """The ``data`` of a ``t3``, with r2's field names. r2 reported downs as 0, so does this.
 
     Moderators also see reports and removal state; everyone else gets nulls there, as on r2.
+    Every player is served over https, so the ``secure_`` fields repeat the others, as r2's did
+    for https embeds.
     """
+    media: JSON = player.oembed() if player else None
+    media_embed: JSON = player.media_embed() if player else {}
     created = link.created.timestamp()
     url = permalink(link) if link.is_self else link.url
     selftext = DELETED if link.deleted and link.is_self else link.selftext_md
@@ -108,7 +115,10 @@ def link_data(
         'clicked': False,
         'visited': False,
         'archived': False,
-        'media': None,
+        'media': media,
+        'media_embed': media_embed,
+        'secure_media': media,
+        'secure_media_embed': media_embed,
     }
 
 
@@ -129,6 +139,10 @@ class LinkRow:
     hidden: bool = False
     # The author is the viewer's friend.
     friend: bool = False
+    # The site player the link opens in, if it is on one of the sites in app/services/embeds.py.
+    player: Player | None = None
+    # The viewer said they are over eighteen, so NSFW links open in place too.
+    over_18: bool = False
 
     def data(self) -> dict[str, JSON]:
         """The link as a ``t3``'s data, as this viewer sees it."""
@@ -139,6 +153,7 @@ class LinkRow:
             thumbnail=self.thumbnail,
             saved=self.saved,
             hidden=self.hidden,
+            player=self.player,
         )
 
     @property
@@ -160,17 +175,33 @@ class LinkRow:
 
     @property
     def expando(self) -> str | None:
-        """The expando button's kind: ``selftext`` for text, ``image`` for an image, else None."""
+        """The expando button's kind, or None for no button.
+
+        ``selftext`` for text, ``image`` for an image, ``video`` for a video file, or the kind of
+        the link's site player: ``video``, ``audio``, ``gif`` or ``post``.
+        """
         link = self.link
         if link.deleted or link.removed or link.spam:
             return None
         if link.is_self:
             return 'selftext' if link.selftext_html else None
-        # Images over https only, as the page's CSP allows; none for NSFW, which r2 kept hidden.
+        # NSFW media opens in place only for viewers who said they are over eighteen.
+        if link.nsfw and not self.over_18:
+            return None
+        if self.player:
+            return self.player.provider.kind
+        if self.video_src:
+            return 'video'
+        # Images over https only, as the page's CSP allows.
         image = link.url.startswith('https://') and urlsplit(link.url).path.lower().endswith(
             IMAGE_SUFFIXES
         )
-        return 'image' if image and not link.nsfw else None
+        return 'image' if image else None
+
+    @property
+    def video_src(self) -> str | None:
+        """What a <video> plays for a link to a video file; None for anything else."""
+        return None if self.link.is_self or self.player else video_source(self.link.url)
 
     @property
     def author(self) -> str | None:

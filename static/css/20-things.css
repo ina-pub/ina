@@ -435,6 +435,19 @@ details.report-form input[type='text'] {
   --icon: url(/static/img/icons/text.svg);
 }
 
+.expando-button.video,
+.expando-button.gif {
+  --icon: url(/static/img/icons/video.svg);
+}
+
+.expando-button.audio {
+  --icon: url(/static/img/icons/audio.svg);
+}
+
+.expando-button.post {
+  --icon: url(/static/img/icons/post.svg);
+}
+
 .expando-button.expanded {
   --icon: url(/static/img/icons/close.svg);
 }
@@ -452,9 +465,43 @@ details.report-form input[type='text'] {
   max-width: 60em;
 }
 
-.expando .media-preview img.preview {
+.expando .media-preview img.preview,
+.expando .media-preview video.preview {
+  display: block;
   max-width: 100%;
   max-height: 700px;
+}
+
+/* Players from other sites. Each layout keeps the shape its sites draw in; posts start at a
+   guess and grow to the height their frame reports (expando.js). */
+.expando iframe.embed {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+
+.expando iframe.embed-tall {
+  max-width: 325px;
+  aspect-ratio: 9 / 16;
+}
+
+.expando iframe.embed-gif {
+  max-width: 480px;
+  aspect-ratio: 4 / 3;
+}
+
+.expando iframe.embed-audio {
+  aspect-ratio: auto;
+  height: 166px;
+}
+
+.expando iframe.embed-post {
+  max-width: 550px;
+  aspect-ratio: auto;
+  height: 500px;
 }
 
 /* Sorting and time choices above a listing, and the pages below it. */

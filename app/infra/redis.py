@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from app.settings import Settings
 
 # Bump when the shape of any stored value changes, instead of flushing.
-KEY_VERSION = 'v3'
+KEY_VERSION = 'v4'
 
 
 class TimedRedis(Redis):

@@ -10,8 +10,9 @@ LINK = frozenset({
     'author_fullname', 'clicked', 'community', 'community_id', 'community_name_prefixed',
     'contest_mode', 'created', 'created_utc', 'distinguished', 'domain', 'downs', 'edited',
     'hidden', 'hide_score', 'id', 'is_self', 'likes', 'link_flair_css_class', 'link_flair_text',
-    'locked', 'media', 'name', 'num_comments', 'num_reports', 'over_18', 'permalink', 'removed',
-    'report_reasons', 'saved', 'score', 'selftext', 'selftext_html', 'spam', 'spoiler',
+    'locked', 'media', 'media_embed', 'name', 'num_comments', 'num_reports', 'over_18',
+    'permalink', 'removed', 'report_reasons', 'saved', 'score', 'secure_media',
+    'secure_media_embed', 'selftext', 'selftext_html', 'spam', 'spoiler',
     'stickied', 'suggested_sort', 'thumbnail', 'thumbnail_height', 'thumbnail_width', 'title',
     'ups', 'upvote_ratio', 'url', 'visited',
 })  # fmt: skip

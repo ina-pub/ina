@@ -37,7 +37,7 @@ from app.errors import ErrorCode, InaError
 from app.ids import Fullname, Kind
 from app.infra.cache import Cache
 from app.jobs.bouncer import check_new
-from app.jobs.media import make_thumbnail
+from app.jobs.media import find_embed, make_thumbnail
 from app.jobs.scores import recount_link
 from app.repos.base import CommunityRepo, Link, LinkRepo, Prefs, Sort, VoteRepo
 from app.services import links as links_service
@@ -509,4 +509,6 @@ async def submit(
         tasks.append(publish(check_new, str(link.fullname)))
     if settings.thumbnails and not link.is_self:
         tasks.append(publish(make_thumbnail, str(link.fullname)))
+    if settings.embeds and not link.is_self:
+        tasks.append(publish(find_embed, str(link.fullname)))
     return Rendered(content=result, background=BackgroundTasks(tasks))

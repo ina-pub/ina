@@ -17,7 +17,7 @@ from litestar.status_codes import HTTP_200_OK, HTTP_303_SEE_OTHER, HTTP_404_NOT_
 
 from app.errors import ErrorCode, FieldError
 from app.infra.timing import timed
-from app.services import sessions
+from app.services import embeds, sessions
 from app.views.base import View
 from app.views.forms import FormResult
 
@@ -37,8 +37,11 @@ API_PAGES = frozenset({'/api/v1/authorize'})
 WANTS_JSON = 'wants_json'
 EDGE_CACHE = 'public, max-age=60'
 # Scripts only from our own files: no inline script, no eval.
+# Linked images and video files load from anywhere over https. Frames load only from the
+# players of the sites listed in app/services/embeds.py.
 CONTENT_SECURITY_POLICY = (
-    "default-src 'self'; img-src 'self' data: https:; script-src 'self'; object-src 'none'; "
+    "default-src 'self'; img-src 'self' data: https:; media-src 'self' https:; "
+    f"frame-src {' '.join(embeds.FRAME_SOURCES)}; script-src 'self'; object-src 'none'; "
     "base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 )
 NO_CACHE = 'private, no-store'
