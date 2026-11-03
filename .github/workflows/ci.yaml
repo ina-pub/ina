@@ -5,6 +5,12 @@ on:
     branches: [develop]
   pull_request:
 
+# A newer push to the same branch or PR supersedes the run before it, so cancel the older one
+# rather than let it hold runners (or sit stuck in the queue).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
