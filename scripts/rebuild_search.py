@@ -91,7 +91,7 @@ async def rebuild(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or '').partition('\n')[0])
     parser.add_argument('--recreate', action='store_true', help='drop and recreate the indices')
     parser.add_argument(
         '--things', default=','.join(THINGS), help='comma-separated: links,communities'

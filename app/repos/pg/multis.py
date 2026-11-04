@@ -46,7 +46,7 @@ class PgMultiRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def _load(self, statement: Select[Any]) -> list[Multi]:
+    async def _load(self, statement: Select[*tuple[Any, ...]]) -> list[Multi]:
         rows = (await self.session.execute(statement)).all()
         if not rows:
             return []
@@ -61,7 +61,7 @@ class PgMultiRepo:
             by_multi.setdefault(multi_id, []).append((community_id, name))
         return [Multi(**row._asdict(), communities=tuple(by_multi.get(row.id, []))) for row in rows]
 
-    def _select(self) -> Select[Any]:
+    def _select(self) -> Select[*tuple[Any, ...]]:
         return select(*COLUMNS).join(accounts, accounts.c.id == multis.c.owner_id)
 
     async def by_path(self, owner: str, name: str) -> Multi | None:

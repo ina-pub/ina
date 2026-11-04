@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import secrets
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
@@ -50,6 +51,8 @@ CSRF_EXEMPT = 'csrf_exempt'
 # one is closed to API apps; ANY_TOKEN lets in any token.
 SCOPE = 'oauth_scope'
 ANY_TOKEN = ''
+# A scope name, or a function of the request that picks one.
+type Needed = str | Callable[[Request[Any, Any, Any]], Awaitable[str]]
 # An API app's checked token, kept on the request.
 BEARER = 'bearer'
 # Put on a route's ``opt`` to let an account in a timeout use it: reading, saving, its own
@@ -77,7 +80,7 @@ async def bearer_guard(
     grant = await oauth.bearer(
         provide_apps(db_session), provide_accounts(db_session), token.strip()
     )
-    needed = handler.opt.get(SCOPE)
+    needed: Needed | None = handler.opt.get(SCOPE)
     if callable(needed):
         needed = await needed(connection)
     if needed is None or (needed != ANY_TOKEN and needed not in grant.token.scopes):

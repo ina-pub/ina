@@ -8,7 +8,6 @@ community's ``about`` pages by which one.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from litestar import Request
@@ -31,7 +30,7 @@ from app.controllers import (
     users,
     wiki,
 )
-from app.controllers.auth import ANY_TOKEN, SCOPE
+from app.controllers.auth import ANY_TOKEN, SCOPE, Needed
 from app.services.relations import ACCOUNT_RELATIONS
 
 if TYPE_CHECKING:
@@ -53,8 +52,6 @@ async def relation_scope(request: Request[Any, Any, Any]) -> str:
 async def about_scope(request: Request[Any, Any, Any]) -> str:
     return 'modlog' if request.path_params.get('where') == 'log' else 'read'
 
-
-type Needed = str | Callable[[Request[Any, Any, Any]], Awaitable[str]]
 
 ROUTES: dict[str, tuple[HTTPRouteHandler, ...]] = {
     ANY_TOKEN: (oauth.show_scopes, api_docs.show_openapi),

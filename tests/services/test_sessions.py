@@ -4,6 +4,8 @@ import time
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from pydantic import SecretStr
+
 from app.repos.base import Account, Prefs
 from app.services import sessions
 from app.settings import Settings
@@ -49,7 +51,7 @@ def test_tampered_cookie_is_rejected(settings: Settings) -> None:
 
 
 def test_cookie_signed_with_another_key_is_rejected(settings: Settings) -> None:
-    other = Settings(secret_key='a-different-key')
+    other = Settings(secret_key=SecretStr('a-different-key'))
     cookie = sessions.encode(other, sessions.start(ACCOUNT, remember=False))
     assert sessions.decode(settings, cookie) is None
 

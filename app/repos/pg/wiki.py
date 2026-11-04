@@ -41,11 +41,11 @@ REVISION_COLUMNS = (
 )
 
 
-def _pages() -> Select[Any]:
+def _pages() -> Select[*tuple[Any, ...]]:
     return select(*PAGE_COLUMNS).outerjoin(_reviser, _reviser.c.id == wiki_pages.c.revised_by)
 
 
-def _revisions() -> Select[Any]:
+def _revisions() -> Select[*tuple[Any, ...]]:
     return (
         select(*REVISION_COLUMNS)
         .join(wiki_pages, wiki_pages.c.id == wiki_revisions.c.page_id)
@@ -65,7 +65,7 @@ class PgWikiRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def _page(self, statement: Select[Any]) -> WikiPage | None:
+    async def _page(self, statement: Select[*tuple[Any, ...]]) -> WikiPage | None:
         row = (await self.session.execute(statement)).first()
         return to_page(row) if row else None
 

@@ -44,7 +44,7 @@ async def run(command: str, name: str | None = None) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or '').partition('\n')[0])
     commands = parser.add_subparsers(dest='command', required=True)
     for command in ('grant', 'revoke'):
         commands.add_parser(command).add_argument('name')

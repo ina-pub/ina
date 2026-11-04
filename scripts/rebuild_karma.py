@@ -50,7 +50,7 @@ async def rebuild(start: int = 1, batch: int = DEFAULT_BATCH) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or '').partition('\n')[0])
     parser.add_argument('--from', dest='start', type=int, default=1)
     parser.add_argument('--batch', type=int, default=DEFAULT_BATCH)
     arguments = parser.parse_args()

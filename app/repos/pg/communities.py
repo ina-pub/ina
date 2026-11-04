@@ -72,7 +72,7 @@ class PgCommunityRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def _all(self, statement: Select[Any]) -> list[Community]:
+    async def _all(self, statement: Select[*tuple[Any, ...]]) -> list[Community]:
         return [to_community(row) for row in await self.session.execute(statement)]
 
     async def by_id(self, community_id: int) -> Community | None:

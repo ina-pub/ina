@@ -120,7 +120,7 @@ class PgModerationRepo:
         )
         return (await self.session.execute(statement)).first() is not None
 
-    async def _members(self, statement: Select[Any]) -> list[Member]:
+    async def _members(self, statement: Select[*tuple[Any, ...]]) -> list[Member]:
         return [Member(**row._asdict()) for row in await self.session.execute(statement)]
 
     async def bans(self, community_id: int) -> list[Member]:

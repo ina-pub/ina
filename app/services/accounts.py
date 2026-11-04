@@ -68,6 +68,7 @@ async def register(
     email: str,
 ) -> Account:
     errors = name_errors(name) + new_password_errors(password, verify, fields=('passwd', 'passwd2'))
+    cleaned_email: str | None = None
     try:
         cleaned_email = clean_email(email)
     except InaError as error:

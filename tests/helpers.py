@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from http.server import BaseHTTPRequestHandler
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, override
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -109,5 +109,6 @@ class Pages(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def log_message(self, *_: object) -> None:
+    @override
+    def log_message(self, format: str, *args: object) -> None:
         pass

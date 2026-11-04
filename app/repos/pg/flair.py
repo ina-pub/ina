@@ -33,7 +33,7 @@ TEMPLATE_COLUMNS = (
 )
 
 
-def _flairs() -> Select[Any]:
+def _flairs() -> Select[*tuple[Any, ...]]:
     return select(user_flair.c.community_id, *FLAIR_COLUMNS).join(
         accounts, accounts.c.id == user_flair.c.account_id
     )

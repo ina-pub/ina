@@ -45,7 +45,7 @@ class Cache:
         await self.redis.set(key(name), msgspec.json.encode(value), ex=ttl)
         return value
 
-    async def put[T](self, name: str, value: T, *, ttl: int) -> None:
+    async def put(self, name: str, value: object, *, ttl: int) -> None:
         await self.redis.set(key(name), msgspec.json.encode(value), ex=ttl)
 
     async def things[T](

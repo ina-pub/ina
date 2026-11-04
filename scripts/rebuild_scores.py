@@ -61,7 +61,7 @@ async def rebuild(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or '').partition('\n')[0])
     parser.add_argument(
         '--things', default='links,comments', help='comma-separated: links,comments'
     )

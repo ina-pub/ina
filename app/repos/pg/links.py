@@ -165,7 +165,7 @@ class PgLinkRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    def _select(self) -> Select[Any]:
+    def _select(self) -> Select[*tuple[Any, ...]]:
         return select(*COLUMNS).select_from(JOINED)
 
     async def create(self, link: NewLink) -> Link:

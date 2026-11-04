@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 
 def profile_page(
-    statement: Select[Any], table: Table, query: ProfileQuery, values: dict[Sort, Any]
-) -> Select[Any]:
+    statement: Select[*tuple[Any, ...]], table: Table, query: ProfileQuery, values: dict[Sort, Any]
+) -> Select[*tuple[Any, ...]]:
     """Filter and order a profile's links or comments; ``values`` names each sort's column."""
     conditions: list[ColumnElement[bool]] = [
         table.c.author_id == query.author_id,

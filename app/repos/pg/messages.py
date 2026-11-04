@@ -97,11 +97,11 @@ def _not_blocked(account_id: int, author: ColumnElement[int]) -> ColumnElement[b
 
 def _entries(
     kind: EntryKind,
-    statement: Select[Any],
+    statement: Select[*tuple[Any, ...]],
     thing_id: ColumnElement[int],
     created: ColumnElement[Any],
     unread: ColumnElement[bool],
-) -> Select[Any]:
+) -> Select[*tuple[Any, ...]]:
     return statement.with_only_columns(
         literal(kind.value).label('kind'),
         literal(RANKS[kind], Integer).label('rank'),
@@ -111,7 +111,7 @@ def _entries(
     )
 
 
-def _comment_replies(account_id: int) -> Select[Any]:
+def _comment_replies(account_id: int) -> Select[*tuple[Any, ...]]:
     """Replies to the account's comments, from anyone else, where it asked for replies."""
     base = (
         select(comments.c.id)
@@ -129,7 +129,7 @@ def _comment_replies(account_id: int) -> Select[Any]:
     )
 
 
-def _post_replies(account_id: int) -> Select[Any]:
+def _post_replies(account_id: int) -> Select[*tuple[Any, ...]]:
     """Top-level comments on the account's links, from anyone else."""
     base = (
         select(comments.c.id)
@@ -146,7 +146,7 @@ def _post_replies(account_id: int) -> Select[Any]:
     return _entries(EntryKind.POST_REPLY, base, comments.c.id, comments.c.created, comments.c.new)
 
 
-def _mentions(account_id: int) -> Select[Any]:
+def _mentions(account_id: int) -> Select[*tuple[Any, ...]]:
     base = (
         select(mentions.c.comment_id)
         .select_from(mentions.join(comments, comments.c.id == mentions.c.comment_id))
@@ -161,7 +161,7 @@ def _mentions(account_id: int) -> Select[Any]:
     )
 
 
-def _received(account_id: int) -> Select[Any]:
+def _received(account_id: int) -> Select[*tuple[Any, ...]]:
     base = select(messages.c.id).where(
         messages.c.to_id == account_id,
         messages.c.del_on_recipient == false(),
@@ -170,7 +170,7 @@ def _received(account_id: int) -> Select[Any]:
     return _entries(EntryKind.MESSAGE, base, messages.c.id, messages.c.created, ~messages.c.read)
 
 
-def _parts(account_id: int, box: Box, moderated: list[int]) -> list[Select[Any]]:
+def _parts(account_id: int, box: Box, moderated: list[int]) -> list[Select[*tuple[Any, ...]]]:
     if box is Box.SENT:
         sent = select(messages.c.id).where(messages.c.from_id == account_id)
         return [_entries(EntryKind.MESSAGE, sent, messages.c.id, messages.c.created, false())]
@@ -197,7 +197,7 @@ class PgMessageRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    def _select(self) -> Select[Any]:
+    def _select(self) -> Select[*tuple[Any, ...]]:
         return select(*COLUMNS).select_from(JOINED)
 
     async def create(self, message: NewMessage) -> Message:
